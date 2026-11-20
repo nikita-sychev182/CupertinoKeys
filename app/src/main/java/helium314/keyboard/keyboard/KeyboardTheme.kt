@@ -154,15 +154,15 @@ private constructor(val themeId: Int, @JvmField val mStyleId: Int) {
             return when (themeName) {
                 THEME_CUPERTINO_LIGHT -> CupertinoColors(DefaultColors(
                     themeStyle, hasBorders,
-                    "#007AFF".toColorInt(), "#D1D3D9".toColorInt(),
+                    "#69788D".toColorInt(), "#D1D3D9".toColorInt(),
                     "#F9FAFC".toColorInt(), "#C0C6D0".toColorInt(), "#F5F7FA".toColorInt(),
                     Color.BLACK, "#50545C".toColorInt(),
                     keyboardBackground = backgroundImage
                 ), false, context.resources.displayMetrics.density)
                 THEME_CUPERTINO_DARK -> CupertinoColors(DefaultColors(
                     themeStyle, hasBorders,
-                    "#0A84FF".toColorInt(), "#1C1C1E".toColorInt(),
-                    "#555861".toColorInt(), "#3E424C".toColorInt(), "#555861".toColorInt(),
+                    "#777383".toColorInt(), "#1C1C1E".toColorInt(),
+                    "#50535D".toColorInt(), "#454853".toColorInt(), "#50535D".toColorInt(),
                     Color.WHITE, "#EBEBF5".toColorInt(),
                     keyboardBackground = backgroundImage
                 ), true, context.resources.displayMetrics.density)

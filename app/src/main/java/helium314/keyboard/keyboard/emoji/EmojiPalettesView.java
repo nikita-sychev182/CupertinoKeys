@@ -261,6 +261,9 @@ public final class EmojiPalettesView extends LinearLayout
         if (initialized) return;
         mEmojiCategory.initialize();
         mTabStrip = (LinearLayout) KeyboardSwitcher.getInstance().getEmojiTabStrip();
+        // The strip inherits a static XML background; tinting its icons alone leaves
+        // a light band behind transparent Cupertino category buttons in dark mode.
+        mColors.setBackground(mTabStrip, ColorType.STRIP_BACKGROUND);
         if (Settings.getValues().isSecondaryStripVisible()) {
             for (EmojiCategory.CategoryProperties properties : mEmojiCategory.getShownCategories()) {
                 addTab(mTabStrip, properties.getCategory());

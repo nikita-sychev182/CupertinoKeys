@@ -17,11 +17,12 @@ parser.add_argument("--serial", required=True)
 parser.add_argument("--adb", default="adb")
 parser.add_argument("--output", type=Path, default=Path(".tools/test-results"))
 parser.add_argument("--screenshots", action="store_true", help="Capture light EN and dark RU previews in our disposable screen")
-parser.add_argument("--phase", choices=("geometry", "navigation", "work_setup", "work_cleanup"),
+parser.add_argument("--phase", choices=("geometry", "navigation", "voice", "emoji_light", "emoji_dark", "work_setup", "work_cleanup"),
                     help="Run a targeted check; work_setup deliberately retains one disposable dictionary word")
 args = parser.parse_args()
 if args.screenshots and args.phase:
     parser.error("Use either --screenshots or --phase")
+capture_preview = args.screenshots or bool(args.phase and args.phase.startswith("emoji_"))
 adb = [args.adb, "-s", args.serial]
 package = "dev.cupertinokeys.keyboard.debug"
 activity = f"{package}/helium314.keyboard.latin.KeyboardTestActivity"
@@ -39,7 +40,7 @@ for phase in ((args.phase,) if args.phase else (("preview_light", "preview_dark"
         time.sleep(3)
         subprocess.run(adb + ["shell", "am", "start", "-W", "-n", activity], check=True,
                        stdout=subprocess.DEVNULL, timeout=20)
-        if args.screenshots:
+        if capture_preview:
             ready = queue.Queue()
             def read_preview():
                 for line in process.stdout:
@@ -65,7 +66,7 @@ for phase in ((args.phase,) if args.phase else (("preview_light", "preview_dark"
         else:
             output, _ = process.communicate(timeout=60)
     except BaseException:
-        if args.screenshots:
+        if capture_preview:
             (args.output / f"device-{phase}-failure.txt").write_text("".join(lines), encoding="utf-8")
         # Finish only our test process; do not leave a hung instrumentation session.
         subprocess.run(adb + ["shell", "am", "force-stop", package], check=False, timeout=15)

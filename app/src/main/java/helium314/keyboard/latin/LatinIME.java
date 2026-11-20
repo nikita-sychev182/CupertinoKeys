@@ -807,6 +807,7 @@ public class LatinIME extends InputMethodService implements
     @Override
     public void onStartInputView(final EditorInfo editorInfo, final boolean restarting) {
         mHandler.onStartInputView(editorInfo, restarting);
+        helium314.keyboard.keyboard.CupertinoNavigationBar.refresh();
         mStatsUtilsManager.onStartInputView();
     }
 
@@ -1445,7 +1446,7 @@ public class LatinIME extends InputMethodService implements
     // completely replace #onCodeInput.
     public void onEvent(@NonNull final Event event) {
         if (KeyCode.VOICE_INPUT == event.getKeyCode()) {
-            mRichImm.switchToShortcutIme(this);
+            helium314.keyboard.keyboard.GoogleVoiceInput.start(this);
         }
         final InputTransaction completeInputTransaction =
                 mInputLogic.onCodeInput(mSettings.getCurrent(), event,

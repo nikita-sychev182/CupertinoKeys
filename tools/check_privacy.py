@@ -9,6 +9,7 @@ FORBIDDEN = {
     "android.permission.INTERNET", "android.permission.ACCESS_NETWORK_STATE",
     "android.permission.READ_USER_DICTIONARY", "android.permission.WRITE_USER_DICTIONARY",
     "android.permission.READ_CONTACTS",
+    "android.permission.RECORD_AUDIO",  # Voice input is delegated to Google's separate IME.
 }
 DOMAINS = {
     "root", "file", "database", "sharedpref", "external", "device_root",

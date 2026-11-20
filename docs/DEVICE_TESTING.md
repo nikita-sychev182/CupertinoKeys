@@ -58,6 +58,17 @@ restores automatic theme selection afterward. Screenshots and color diagnostics 
 saved under `.tools/test-results/`. Check the rendered text contrast visually: MIUI
 can recolor Canvas text even when the application passes the correct Paint color.
 
+Use `--phase emoji_dark` and `--phase emoji_light` to inspect the emoji category strip
+in both themes. Each phase saves a screenshot and checks that the strip reveals the
+themed keyboard background instead of inheriting a static light XML background.
+
+Use `--phase voice` to check discovery of enabled Google Voice Typing and suppression
+in password/no-learning fields. This does not start recording. Manually tap the
+bottom-right microphone in an ordinary text field, dictate disposable text, and check
+insertion and return to Cupertino Keys. Hold the microphone to hide the keyboard.
+Repeat actual dictation in a Shelter app separately; the automated phase does not
+verify external Google behavior or work-profile voice policy.
+
 ## Work profile on Xiaomi 14
 
 Status: the user confirmed the combined manual personal/Shelter check passed;

@@ -59,7 +59,7 @@ class KeyboardSmokeInstrumentation : Instrumentation() {
         .apply { isAccessible = true }.get(KeyboardSwitcher.getInstance()) as LatinIME
     private fun language() = main { requireNotNull(keyboard().keyboard).mId.locale.language }
 
-    private fun navigationTap(id: Int) {
+    private fun navigationTap(id: Int, longPress: Boolean = false) {
         main {
             val target = keyboard().rootView.findViewById<View>(id)
             val position = IntArray(2)
@@ -69,6 +69,10 @@ class KeyboardSmokeInstrumentation : Instrumentation() {
             val x = position[0] + target.width / 2
             val y = position[1] + target.height / 2
             check("navigation target $id is inside IME touch region", insets.touchableRegion.contains(x, y))
+            if (longPress) {
+                check("navigation long-press handled", target.performLongClick())
+                return@main
+            }
             val now = SystemClock.uptimeMillis()
             for (action in listOf(MotionEvent.ACTION_DOWN, MotionEvent.ACTION_UP)) {
                 val event = MotionEvent.obtain(now, now + if (action == MotionEvent.ACTION_UP) 50 else 0,
@@ -109,16 +113,27 @@ class KeyboardSmokeInstrumentation : Instrumentation() {
     override fun onStart() {
         val output = Bundle()
         try {
-            if (phase.startsWith("preview_")) SettingsActivity.forceNight = phase == "preview_dark"
+            val themedPreview = phase.startsWith("preview_") || phase.startsWith("emoji_")
+            if (themedPreview) SettingsActivity.forceNight = phase.endsWith("_dark")
             activity = startActivitySync(Intent(targetContext, KeyboardTestActivity::class.java)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-            if (phase.startsWith("preview_")) main { KeyboardSwitcher.getInstance().setThemeNeedsReload() }
+            if (themedPreview) main { KeyboardSwitcher.getInstance().setThemeNeedsReload() }
             button("Text")
             repeat(30) {
                 if (!main { KeyboardSwitcher.getInstance().mainKeyboardView?.isShown == true }) SystemClock.sleep(200)
             }
             check("IME is visible", main { keyboard().isShown })
-            if (phase == "work_setup") {
+            if (phase.startsWith("emoji_")) {
+                touch(KeyCode.EMOJI)
+                check("emoji categories visible", main { KeyboardSwitcher.getInstance().emojiTabStrip.isShown })
+                check("emoji strip reveals the themed background", main {
+                    val background = KeyboardSwitcher.getInstance().emojiTabStrip.background
+                    background is android.graphics.drawable.ColorDrawable && background.color == android.graphics.Color.TRANSPARENT
+                })
+                sendStatus(1, Bundle().apply { putString("stream", "PREVIEW_READY\n") })
+                SystemClock.sleep(8000)
+                SettingsActivity.forceNight = null
+            } else if (phase == "work_setup") {
                 if (language() != "en") touch(32, 250f)
                 button("Add test word")
                 check("work-profile test word ready in personal IME dictionary", dictionaryCount() == 1)
@@ -126,6 +141,29 @@ class KeyboardSmokeInstrumentation : Instrumentation() {
             } else if (phase == "work_cleanup") {
                 button("Delete test word")
                 check("work-profile test word removed", dictionaryCount() == 0)
+            } else if (phase == "voice") {
+                check("Google Voice Typing is enabled", main {
+                    helium314.keyboard.keyboard.GoogleVoiceInput.enabledIme(ime()) != null
+                })
+                check("voice available in ordinary text", main {
+                    helium314.keyboard.keyboard.GoogleVoiceInput.isAllowed(Settings.getValues())
+                })
+                button("Password")
+                check("voice blocked in password field", main {
+                    !helium314.keyboard.keyboard.GoogleVoiceInput.isAllowed(Settings.getValues())
+                })
+                button("No learning")
+                check("voice blocked by app no-learning flag", main {
+                    !helium314.keyboard.keyboard.GoogleVoiceInput.isAllowed(Settings.getValues())
+                })
+                button("Text")
+                check("voice restored when returning to ordinary text", main {
+                    helium314.keyboard.keyboard.GoogleVoiceInput.isAllowed(Settings.getValues())
+                })
+                check("voice check never switched away from Cupertino", main {
+                    android.provider.Settings.Secure.getString(targetContext.contentResolver,
+                        android.provider.Settings.Secure.DEFAULT_INPUT_METHOD).startsWith(targetContext.packageName + "/")
+                })
             } else if (phase == "navigation") {
                 check("custom bottom panel visible", main {
                     keyboard().rootView.findViewById<View>(R.id.cupertino_navigation_bar).isShown
@@ -142,8 +180,8 @@ class KeyboardSmokeInstrumentation : Instrumentation() {
                 button("Clear")
                 navigationTap(R.id.cupertino_language)
                 check("bottom globe cycles back", language() == beforeLanguage)
-                navigationTap(R.id.cupertino_hide)
-                check("bottom right button hides IME", main { !ime().isInputViewShown })
+                navigationTap(R.id.cupertino_voice, longPress = true)
+                check("holding bottom microphone hides IME", main { !ime().isInputViewShown })
                 button("Text")
                 SystemClock.sleep(500)
                 check("IME reopens with custom panel", main {

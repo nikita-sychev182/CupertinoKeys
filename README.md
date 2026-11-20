@@ -22,11 +22,19 @@ therefore allowed only if the keyboard occupies the entire window, which the nor
 full-height IME popup layout does not. No application screenshots are captured or stored.
 
 On Android 16 with gesture navigation, the Cupertino theme replaces the system IME
-caption bar with a bottom-left language globe and bottom-right hide button. The globe
-cycles enabled languages; long-press opens Android's keyboard picker. The system
+caption bar with a bottom-left language globe and bottom-right Google voice button.
+Hold the microphone to hide the keyboard. In password/no-learning fields it becomes
+a hide button. The globe cycles enabled languages; long-press opens Android's keyboard picker. The system
 gesture bar stays visible. Older versions, floating/fullscreen modes, and devices that
 do not allow caption-bar replacement retain the system panel. See the
 [Xiaomi 14 regression checks](docs/testing/xiaomi14-2026-11-21.md).
+The latest [reference-style and emoji checks](docs/testing/ios-reference-2026-11-21.md)
+cover flatter keycaps, reduced height, the voice button, and themed emoji categories.
+
+Voice input hands control to an enabled Google Voice Typing keyboard. Cupertino Keys
+does not record audio or request microphone permission. Google may send audio to its
+servers under its own settings; this optional external service is separate from the
+local dictionary and is not an offline recognition guarantee.
 
 Privacy changes:
 - No internet permission, shared Android dictionary permissions, or contacts access.

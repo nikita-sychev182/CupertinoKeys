@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="cupertino_voice_description">Google voice input. Hold to hide keyboard.</string>
+    <string name="cupertino_enable_google_voice">Enable Google Voice Typing in Android keyboard settings.</string>
+    <string name="cupertino_voice_not_permitted">Voice input is not permitted in this profile.</string>
     <string name="theme_name_cupertino_light" translatable="false">Cupertino Light</string>
     <string name="theme_name_cupertino_dark" translatable="false">Cupertino Dark</string>
 </resources>

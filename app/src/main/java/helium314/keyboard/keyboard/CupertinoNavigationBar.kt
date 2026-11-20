@@ -52,7 +52,7 @@ object CupertinoNavigationBar {
     private class Session(private val ime: LatinIME, private val input: View) {
         private val bar = input.findViewById<View>(R.id.cupertino_navigation_bar)
         private val globe = input.findViewById<ImageButton>(R.id.cupertino_language)
-        private val hide = input.findViewById<ImageButton>(R.id.cupertino_hide)
+        private val voice = input.findViewById<ImageButton>(R.id.cupertino_voice)
         private var requested = false
         private var closed = false
         private val update = Runnable { if (!closed) input.requestApplyInsets() }
@@ -69,7 +69,11 @@ object CupertinoNavigationBar {
                 ime.getSystemService(InputMethodManager::class.java).showInputMethodPicker()
                 true
             }
-            hide.setOnClickListener { ime.requestHideSelf(0) }
+            voice.setOnClickListener {
+                if (GoogleVoiceInput.isAllowed(Settings.getValues())) GoogleVoiceInput.start(ime)
+                else ime.requestHideSelf(0)
+            }
+            voice.setOnLongClickListener { ime.requestHideSelf(0); true }
             input.setOnApplyWindowInsetsListener { view, insets ->
                 apply(input.rootWindowInsets ?: insets)
                 view.onApplyWindowInsets(insetsForKeyboard(insets, bar.visibility == View.VISIBLE))
@@ -103,9 +107,14 @@ object CupertinoNavigationBar {
                 }
                 val tint = ColorStateList.valueOf(settings.mColors.get(ColorType.KEY_TEXT))
                 globe.imageTintList = tint
-                hide.imageTintList = tint
+                voice.imageTintList = tint
                 globe.isForceDarkAllowed = false
-                hide.isForceDarkAllowed = false
+                voice.isForceDarkAllowed = false
+                val voiceAllowed = GoogleVoiceInput.isAllowed(settings)
+                voice.setImageResource(if (voiceAllowed) R.drawable.cupertino_microphone else R.drawable.cupertino_hide)
+                voice.contentDescription = input.context.getString(if (voiceAllowed)
+                    R.string.cupertino_voice_description else R.string.space_swipe_hide_keyboard_entry)
+                voice.tooltipText = voice.contentDescription
             }
         }
 

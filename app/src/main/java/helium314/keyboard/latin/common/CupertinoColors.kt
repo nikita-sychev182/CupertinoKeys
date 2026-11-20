@@ -53,16 +53,16 @@ private class GlassKeyDrawable(private val tint: Int, private val dark: Boolean,
     private fun shaders() {
         val base = if (pressed) ColorUtils.blendARGB(tint, if (dark) Color.WHITE else Color.BLACK, 0.16f) else tint
         surface = LinearGradient(0f, bounds.top.toFloat(), 0f, bounds.bottom.toFloat(),
-            ColorUtils.blendARGB(base, Color.WHITE, if (dark) 0.09f else 0.32f),
+            ColorUtils.blendARGB(base, Color.WHITE, if (dark) 0.035f else 0.18f),
             ColorUtils.blendARGB(base, if (dark) Color.BLACK else Color.WHITE, 0.02f), Shader.TileMode.CLAMP)
         rim = LinearGradient(0f, bounds.top.toFloat(), bounds.width() * 0.4f, bounds.bottom.toFloat(),
-            if (dark) 0x48FFFFFF else 0xD8FFFFFF.toInt(), if (dark) 0x0AFFFFFF else 0x30FFFFFF, Shader.TileMode.CLAMP)
+            if (dark) 0x20FFFFFF else 0x85FFFFFF.toInt(), if (dark) 0x04FFFFFF else 0x18FFFFFF, Shader.TileMode.CLAMP)
     }
     override fun draw(canvas: Canvas) {
         shape.set(bounds)
         shape.inset(0.4f * density, 0.4f * density)
         shape.bottom -= 0.7f * density
-        val radius = minOf(9f * density, shape.width() * 0.26f)
+        val radius = minOf(6f * density, shape.width() * 0.20f)
         paint.alpha = opacity
         paint.colorFilter = filter
         paint.style = Paint.Style.FILL
@@ -79,7 +79,7 @@ private class GlassKeyDrawable(private val tint: Int, private val dark: Boolean,
         canvas.drawRoundRect(shape, radius, radius, paint)
         paint.shader = rim
         paint.style = Paint.Style.STROKE
-        paint.strokeWidth = 0.65f * density
+        paint.strokeWidth = 0.4f * density
         canvas.drawRoundRect(shape, radius, radius, paint)
         paint.shader = null
         paint.style = Paint.Style.FILL
@@ -100,12 +100,12 @@ private class FrostedSurfaceDrawable(private val dark: Boolean, private val dens
         val w = bounds.width().toFloat()
         val h = bounds.height().toFloat()
         clip.reset()
-        val radius = 19f * density
+        val radius = 10f * density
         clip.addRoundRect(RectF(bounds), floatArrayOf(radius, radius, radius, radius, 0f, 0f, 0f, 0f), Path.Direction.CW)
         val alpha = if (nativeBlur) 120 else 255
         base = LinearGradient(0f, 0f, 0f, h,
-            ColorUtils.setAlphaComponent(if (dark) 0xFF34363F.toInt() else 0xFFE2E5EB.toInt(), alpha),
-            ColorUtils.setAlphaComponent(if (dark) 0xFF252830.toInt() else 0xFFD4DBE5.toInt(), alpha), Shader.TileMode.CLAMP)
+            ColorUtils.setAlphaComponent(if (dark) 0xFF282B33.toInt() else 0xFFE2E5EB.toInt(), alpha),
+            ColorUtils.setAlphaComponent(if (dark) 0xFF1D2733.toInt() else 0xFFD4DBE5.toInt(), alpha), Shader.TileMode.CLAMP)
         coolLight = RadialGradient(w * 0.12f, h * 0.65f, w * 0.7f,
             if (dark) 0x243C85B9 else 0x455EADE2, Color.TRANSPARENT, Shader.TileMode.CLAMP)
         warmLight = RadialGradient(w * 0.95f, h * 0.25f, w * 0.65f,
@@ -121,7 +121,7 @@ private class FrostedSurfaceDrawable(private val dark: Boolean, private val dens
             canvas.drawRect(bounds, paint)
         }
         paint.shader = null
-        paint.color = if (dark) 0x32FFFFFF else 0xA0FFFFFF.toInt()
+        paint.color = if (dark) 0x10FFFFFF else 0x60FFFFFF
         paint.alpha = Color.alpha(paint.color) * opacity / 255
         paint.style = Paint.Style.STROKE
         paint.strokeWidth = 0.7f * density

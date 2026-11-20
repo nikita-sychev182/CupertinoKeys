@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cupertino_voice_description">Голосовой ввод Google. Удерживайте, чтобы скрыть клавиатуру.</string>
+    <string name="cupertino_enable_google_voice">Включите «Голосовой ввод Google» в настройках клавиатур Android.</string>
+    <string name="cupertino_voice_not_permitted">Голосовой ввод не разрешён в этом профиле.</string>
+</resources>
