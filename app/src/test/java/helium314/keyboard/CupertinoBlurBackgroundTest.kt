@@ -13,7 +13,6 @@ import android.view.View
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.widget.FrameLayout
 import helium314.keyboard.keyboard.CupertinoBlurBackground
-import helium314.keyboard.keyboard.CupertinoWindowBlur
 import helium314.keyboard.keyboard.CupertinoNavigationBar
 import helium314.keyboard.latin.R
 import org.junit.Test
@@ -41,13 +40,6 @@ class CupertinoBlurBackgroundTest {
         assertEquals(144, adjusted.getInsets(android.view.WindowInsets.Type.systemGestures()).bottom)
         assertEquals(48, original.getInsets(android.view.WindowInsets.Type.navigationBars()).bottom)
         assertEquals(original, CupertinoNavigationBar.insetsForKeyboard(original, false))
-    }
-
-    @Test fun fullHeightImeWindowMustNotBlurTheApplicationAboveKeyboard() {
-        assertFalse(CupertinoWindowBlur.canBlurWindow(Rect(0, 1680, 1152, 2560), 1152, 2560))
-        assertFalse(CupertinoWindowBlur.canBlurWindow(Rect(0, 500, 2560, 1152), 2560, 1152))
-        assertFalse(CupertinoWindowBlur.canBlurWindow(Rect(), 0, 0))
-        assertTrue(CupertinoWindowBlur.canBlurWindow(Rect(0, 0, 1152, 880), 1152, 880))
     }
 
     @Test fun blurDoesNotMoveInputOrChangeItsHeightAndTouchCoordinates() {

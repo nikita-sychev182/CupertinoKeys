@@ -419,6 +419,15 @@ public final class InputLogic {
                 oldSelStart != newSelStart || oldSelEnd != newSelEnd // selection changed
                 || !mWordComposer.isComposingWord(); // safe to reset
         final boolean hasOrHadSelection = (oldSelStart != oldSelEnd || newSelStart != newSelEnd);
+        // An app can clear a composing word after sending a message without restarting
+        // the IME. Position zero is also inside the old composition, so cursor movement
+        // alone would retain its stale candidates. Confirm the editor is actually empty.
+        boolean editorClearedComposition = false;
+        if (mWordComposer.isComposingWord() && newSelStart == 0 && newSelEnd == 0
+                && composingSpanEnd <= composingSpanStart) {
+            final CharSequence afterCursor = mConnection.getTextAfterCursor(1, 0);
+            editorClearedComposition = afterCursor != null && afterCursor.length() == 0;
+        }
         final int moveAmount = newSelStart - oldSelStart;
         // As an added small gift from the framework, it happens upon rotation when there
         // is a selection that we get a wrong cursor position delivered to startInput() that
@@ -428,7 +437,7 @@ public final class InputLogic {
         // should be true, but that is if the framework had taken that wrong cursor position
         // into account, which means we have to reset the entire composing state whenever there
         // is or was a selection regardless of whether it changed or not.
-        if (hasOrHadSelection || !settingsValues.needsToLookupSuggestions()
+        if (editorClearedComposition || hasOrHadSelection || !settingsValues.needsToLookupSuggestions()
                 || (selectionChangedOrSafeToReset
                         && !mWordComposer.moveCursorByAndReturnIfInsideComposingWord(moveAmount))) {
             // If we are composing a word and moving the cursor, we would want to set a
@@ -445,7 +454,7 @@ public final class InputLogic {
             // we'd have the suggestion strip noticeably janky. To avoid that, we don't clear
             // it here, which means we'll keep outdated suggestions for a split second but the
             // visual result is better.
-            resetEntireInputState(newSelStart, newSelEnd, false /* clearSuggestionStrip */);
+            resetEntireInputState(newSelStart, newSelEnd, editorClearedComposition /* clearSuggestionStrip */);
             // If the user is in the middle of correcting a word, we should learn it before moving
             // the cursor away.
             if (!TextUtils.isEmpty(mWordBeingCorrectedByCursor)) {

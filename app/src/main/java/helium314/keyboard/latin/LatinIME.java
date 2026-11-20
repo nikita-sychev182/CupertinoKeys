@@ -781,7 +781,7 @@ public class LatinIME extends InputMethodService implements
         mInsetsUpdater = ViewOutlineProviderUtilsKt.setInsetsOutlineProvider(view);
         KtxKt.updateSoftInputWindowLayoutParameters(this, mInputView);
         updateSuggestionStripView(view);
-        helium314.keyboard.keyboard.CupertinoWindowBlur.attach(getWindow().getWindow(), view);
+        helium314.keyboard.keyboard.CupertinoWindowBlur.attach(this, view);
         helium314.keyboard.keyboard.CupertinoNavigationBar.attach(this, view);
     }
 
@@ -1029,6 +1029,7 @@ public class LatinIME extends InputMethodService implements
     @Override
     public void onWindowShown() {
         super.onWindowShown();
+        helium314.keyboard.keyboard.CupertinoWindowBlur.refresh();
         helium314.keyboard.keyboard.CupertinoNavigationBar.refresh();
         if (isInputViewShown()) {
             if (mInputView != null && Settings.getValues().mIsFloatingKeyboard)
@@ -1046,6 +1047,7 @@ public class LatinIME extends InputMethodService implements
 
     @Override
     public void onWindowHidden() {
+        helium314.keyboard.keyboard.CupertinoWindowBlur.hide();
         super.onWindowHidden();
         Log.i(TAG, "onWindowHidden");
         final MainKeyboardView mainKeyboardView = mKeyboardSwitcher.getMainKeyboardView();

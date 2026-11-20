@@ -239,6 +239,25 @@ class SuggestionStripView(context: Context, attrs: AttributeSet?, defStyle: Int)
         }
 
         toolbarExpandKey.scaleX = (if (toolbarVisible) -1f else 1f) * direction
+        updateAutoVisibility()
+    }
+
+    /** Reclaim the entire row when there is no candidate; preserve explicit tools/external content. */
+    fun updateAutoVisibility() {
+        val container = parent as? View ?: return
+        val fallbackClipboard = rootView.findViewById<View>(R.id.cupertino_clipboard)
+        if (visibility != VISIBLE) {
+            fallbackClipboard?.visibility = GONE
+            return // Emoji categories and clipboard controls own this row now.
+        }
+        val settings = Settings.getValues()
+        val hasFooter = rootView.findViewById<View>(R.id.cupertino_navigation_bar)?.visibility == VISIBLE
+        val autoHide = settings.mColors is helium314.keyboard.latin.common.CupertinoColors && hasFooter &&
+            !Settings.getInstance().readShowToolbarOnly()
+        val hasCandidates = !suggestedWords.isPunctuationSuggestions && suggestedWords.wordCountToShow > 0
+        val show = !autoHide || toolbarContainer.isVisible || isExternalSuggestionVisible || hasCandidates
+        container.visibility = if (show) VISIBLE else GONE
+        fallbackClipboard?.visibility = if (!show) VISIBLE else GONE
     }
 
     fun setSuggestions(suggestions: SuggestedWords, isRtlLanguage: Boolean) {
@@ -250,6 +269,7 @@ class SuggestionStripView(context: Context, attrs: AttributeSet?, defStyle: Int)
         )
         isExternalSuggestionVisible = false
         updateKeys()
+        updateAutoVisibility()
     }
 
     fun setExternalSuggestionView(view: View?, addCloseButton: Boolean) {
@@ -276,6 +296,7 @@ class SuggestionStripView(context: Context, attrs: AttributeSet?, defStyle: Int)
         }
 
         if (Settings.getValues().mAutoHideToolbar) setToolbarVisibility(false)
+        updateAutoVisibility()
     }
 
     fun setMoreSuggestionsHeight(remainingHeight: Int) {

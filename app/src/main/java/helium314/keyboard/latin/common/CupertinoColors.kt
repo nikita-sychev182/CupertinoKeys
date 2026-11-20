@@ -7,7 +7,7 @@ import android.graphics.drawable.Drawable
 import android.view.View
 import androidx.core.graphics.ColorUtils
 
-/** Frosted material fallback: entirely local rendering, never samples other apps. */
+/** Neutral tint over system-composited blur, or an opaque fallback. No pixel readback. */
 class CupertinoColors(private val base: Colors, val dark: Boolean, private val density: Float) : Colors by base {
     fun setSurface(view: View, nativeBlur: Boolean) {
         view.background = FrostedSurfaceDrawable(dark, density, nativeBlur)
@@ -68,35 +68,24 @@ private class FrostedSurfaceDrawable(private val dark: Boolean, private val dens
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val clip = Path()
     private var base: Shader? = null
-    private var coolLight: Shader? = null
-    private var warmLight: Shader? = null
     private var opacity = 255
     override fun onBoundsChange(bounds: Rect) {
-        val w = bounds.width().toFloat()
         val h = bounds.height().toFloat()
         clip.reset()
         val radius = 10f * density
         clip.addRoundRect(RectF(bounds), floatArrayOf(radius, radius, radius, radius, 0f, 0f, 0f, 0f), Path.Direction.CW)
-        val alpha = if (nativeBlur) 120 else 255
+        val alpha = if (nativeBlur) { if (dark) 160 else 195 } else 255
         base = LinearGradient(0f, 0f, 0f, h,
-            ColorUtils.setAlphaComponent(if (dark) 0xFF25262B.toInt() else 0xFFE0E1E6.toInt(), alpha),
-            ColorUtils.setAlphaComponent(if (dark) 0xFF22252C.toInt() else 0xFFD7DAE1.toInt(), alpha), Shader.TileMode.CLAMP)
-        // Broad low-contrast tones suggest frosted material without colored spotlights.
-        // This is an opaque fallback, not a sample of application content underneath.
-        coolLight = RadialGradient(w * 0.08f, h * 0.58f, w * 0.9f,
-            if (dark) 0x263F626B else 0x187B9CAB, Color.TRANSPARENT, Shader.TileMode.CLAMP)
-        warmLight = RadialGradient(w * 0.95f, h * 0.85f, w * 0.8f,
-            if (dark) 0x24796C88 else 0x169D8DA8, Color.TRANSPARENT, Shader.TileMode.CLAMP)
+            ColorUtils.setAlphaComponent(if (dark) 0xFF252527.toInt() else 0xFFE0E1E6.toInt(), alpha),
+            ColorUtils.setAlphaComponent(if (dark) 0xFF252527.toInt() else 0xFFD7DAE1.toInt(), alpha), Shader.TileMode.CLAMP)
     }
     override fun draw(canvas: Canvas) {
         canvas.save()
         canvas.clipPath(clip)
         paint.color = Color.WHITE
         paint.alpha = opacity
-        for (shader in arrayOf(base, coolLight, warmLight)) {
-            paint.shader = shader
-            canvas.drawRect(bounds, paint)
-        }
+        paint.shader = base
+        canvas.drawRect(bounds, paint)
         paint.shader = null
         paint.color = if (dark) 0x08FFFFFF else 0x20FFFFFF
         paint.alpha = Color.alpha(paint.color) * opacity / 255

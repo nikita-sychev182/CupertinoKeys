@@ -15,13 +15,15 @@ It is **not a pixel-identical iOS keyboard**: the bottom accessory area, animati
 and touch feel still need refinement. Light EN and dark RU previews were inspected on
 Mi 8; see [visual verification](docs/testing/cupertino-visuals.md).
 
-The keyboard uses a locally drawn frosted surface. Xiaomi 14 testing exposed that
-Android's native window blur covers the full IME window, including the application
-above the keys; a background outline does not restrict that region. Native blur is
-therefore allowed only if the keyboard occupies the entire window, which the normal
-full-height IME popup layout does not. No application screenshots are captured or stored.
-Keycaps use flat, slightly translucent fills over this surface, without individual
-shadows or bevels. See the latest [material comparison](docs/testing/flat-material-2026-11-21.md).
+The keyboard uses native background blur on supported Android 12+ devices. A separate,
+non-touchable child window covers only the keyboard, leaving the application above
+it sharp. Its neutral translucent surface takes its tint from the content actually
+drawn underneath; an app with a solid background produces a uniform tint. The system
+composites this effect without the keyboard reading or storing application pixels.
+When blur is unavailable, floating, or fullscreen, the surface is opaque and neutral.
+Flat, slightly translucent keycaps have no individual shadows or bevels. Native blur
+and changing background colors were verified on Xiaomi 14 / Android 16; see
+[glass and suggestion-row checks](docs/testing/glass-suggestions-2026-11-21.md).
 
 On Android 16 with gesture navigation, the Cupertino theme replaces the system IME
 caption bar with a bottom-left language globe and bottom-right Google voice button.
@@ -32,6 +34,12 @@ do not allow caption-bar replacement retain the system panel. See the
 [Xiaomi 14 regression checks](docs/testing/xiaomi14-2026-11-21.md).
 The latest [reference-style and emoji checks](docs/testing/ios-reference-2026-11-21.md)
 cover flatter keycaps, reduced height, the voice button, and themed emoji categories.
+
+With the Android 16 bottom panel, the whole suggestion row collapses when there are
+no word candidates and returns when candidates arrive. The clipboard button moves
+to the center of the bottom panel while the row is hidden. Explicit tools, app-provided
+suggestions, emoji categories, and clipboard controls remain accessible. Older system
+panels retain the existing row so its clipboard button is not lost.
 
 Voice input hands control to an enabled Google Voice Typing keyboard. Cupertino Keys
 does not record audio or request microphone permission. Google may send audio to its
@@ -81,7 +89,8 @@ python tools/check_privacy.py --merged
 The `Cupertino Keys` GitHub Actions workflow is configured to run these checks and upload a development APK.
 Tests cover dictionary persistence, locale separation, duplicate handling, private URIs,
 first-run language defaults, changes to no-learning flags on API 29 and 36, and Android 16
-window geometry/blur boundaries. All 23 cases passed locally on JDK 21.
+window geometry/blur boundaries. All 22 current cases passed locally on JDK 21;
+native child-window boundaries and suggestion-row transitions are checked on-device.
 Source checks alone do not establish runtime behavior.
 
 On Windows, paths containing spaces or `!` require special handling for the upstream

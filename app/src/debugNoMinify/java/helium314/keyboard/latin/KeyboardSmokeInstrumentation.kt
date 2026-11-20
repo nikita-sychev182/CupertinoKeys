@@ -108,6 +108,13 @@ class KeyboardSmokeInstrumentation : Instrumentation() {
         SystemClock.sleep(150)
     }
 
+    private fun clipboardButton(): View {
+        val root = keyboard().rootView
+        return root.findViewById<View>(R.id.cupertino_clipboard)?.takeIf { it.isShown }
+            ?: root.findViewById<ViewGroup>(R.id.pinned_keys)
+                .findViewWithTag(helium314.keyboard.latin.utils.ToolbarKey.CLIPBOARD)
+    }
+
     private fun clipboardAccessChecks() {
         val prefs = targetContext.prefs()
         val key = Settings.PREF_ENABLE_CLIPBOARD_HISTORY
@@ -117,8 +124,7 @@ class KeyboardSmokeInstrumentation : Instrumentation() {
         fun tapClipboard() {
             main {
                 val root = keyboard().rootView
-                val target = root.findViewById<ViewGroup>(R.id.pinned_keys)
-                    .findViewWithTag<View>(helium314.keyboard.latin.utils.ToolbarKey.CLIPBOARD)
+                val target = clipboardButton()
                 check("clipboard target is visible", target.isShown)
                 val location = IntArray(2)
                 val rootLocation = IntArray(2)
@@ -211,9 +217,8 @@ class KeyboardSmokeInstrumentation : Instrumentation() {
             check("no-learning field does not collect history", !saved("private"))
             button("Text")
             main {
-                val pinned = keyboard().rootView.findViewById<ViewGroup>(R.id.pinned_keys)
-                val clipButton = pinned.findViewWithTag<View>(helium314.keyboard.latin.utils.ToolbarKey.CLIPBOARD)
-                check("clipboard button visible beside suggestions", clipButton?.isShown == true)
+                val clipButton = clipboardButton()
+                check("clipboard button remains visible", clipButton.isShown)
                 clipButton.performClick()
             }
             SystemClock.sleep(400)
@@ -262,8 +267,8 @@ class KeyboardSmokeInstrumentation : Instrumentation() {
     override fun onStart() {
         val output = Bundle()
         try {
-            val themedPreview = phase.startsWith("preview_") || phase.startsWith("emoji_")
-            if (themedPreview) SettingsActivity.forceNight = phase.endsWith("_dark")
+            val themedPreview = phase.startsWith("preview_") || phase.startsWith("emoji_") || phase.startsWith("blur_")
+            if (themedPreview) SettingsActivity.forceNight = phase.endsWith("_dark") || phase.startsWith("blur_")
             activity = startActivitySync(Intent(targetContext, KeyboardTestActivity::class.java)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
             if (themedPreview) main { KeyboardSwitcher.getInstance().setThemeNeedsReload() }
@@ -272,7 +277,50 @@ class KeyboardSmokeInstrumentation : Instrumentation() {
                 if (!main { KeyboardSwitcher.getInstance().mainKeyboardView?.isShown == true }) SystemClock.sleep(200)
             }
             check("IME is visible", main { keyboard().isShown })
-            if (phase == "clipboard_access") {
+            if (phase.startsWith("blur_")) {
+                main { (activity as KeyboardTestActivity).setBackdropProbe(phase == "blur_warm") }
+                SystemClock.sleep(500)
+                check("native backdrop follows system availability", main {
+                    helium314.keyboard.keyboard.CupertinoWindowBlur.isActive() == (phase != "blur_fallback")
+                })
+                check("neutral empty strip is collapsed", main { !KeyboardSwitcher.getInstance().stripContainer.isShown })
+                sendStatus(1, Bundle().apply { putString("stream", "PREVIEW_READY\n") })
+                SystemClock.sleep(8000)
+                SettingsActivity.forceNight = null
+            } else if (phase == "suggestions") {
+                if (language() != "en") touch(32, 250f)
+                button("Clear")
+                SystemClock.sleep(500)
+                fun frameHeight() = main { keyboard().rootView.findViewById<View>(R.id.main_keyboard_frame).height }
+                check("empty input has no suggestion row", main { !KeyboardSwitcher.getInstance().stripContainer.isShown })
+                check("clipboard remains available below", main { keyboard().rootView.findViewById<View>(R.id.cupertino_clipboard).isShown })
+                val compactHeight = frameHeight()
+                "hello".forEach { touch(it.code) }
+                SystemClock.sleep(600)
+                check("word candidates reveal row", main { KeyboardSwitcher.getInstance().stripContainer.isShown })
+                check("frame grows only by suggestion row", frameHeight() == compactHeight + main { KeyboardSwitcher.getInstance().stripContainer.height })
+                repeat(5) { touch(KeyCode.DELETE) }
+                SystemClock.sleep(500)
+                check("backspace clears field", text().isEmpty())
+                check("deleting word hides row again", main { !KeyboardSwitcher.getInstance().stripContainer.isShown })
+                check("compact frame height restored", frameHeight() == compactHeight)
+                "hello".forEach { touch(it.code) }
+                main { editor().setSelection(0) }
+                SystemClock.sleep(500)
+                check("moving cursor to start preserves existing text", text().equals("hello", ignoreCase = true))
+                main { editor().setSelection(editor().length()) }
+                button("Clear")
+                SystemClock.sleep(600)
+                check("app clearing its field also hides row", main { !KeyboardSwitcher.getInstance().stripContainer.isShown })
+                "test".forEach { touch(it.code) }
+                check("typing after app clear starts a fresh word", text().equals("test", ignoreCase = true))
+                repeat(4) { touch(KeyCode.DELETE) }
+                navigationTap(R.id.cupertino_voice, longPress = true)
+                check("backdrop removed when keyboard hides", main { !helium314.keyboard.keyboard.CupertinoWindowBlur.isActive() })
+                button("Text")
+                SystemClock.sleep(500)
+                check("backdrop returns with keyboard", main { helium314.keyboard.keyboard.CupertinoWindowBlur.isActive() })
+            } else if (phase == "clipboard_access") {
                 clipboardAccessChecks()
             } else if (phase == "clipboard") {
                 clipboardChecks()

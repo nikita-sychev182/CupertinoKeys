@@ -53,11 +53,19 @@ object CupertinoNavigationBar {
         private val bar = input.findViewById<View>(R.id.cupertino_navigation_bar)
         private val globe = input.findViewById<ImageButton>(R.id.cupertino_language)
         private val voice = input.findViewById<ImageButton>(R.id.cupertino_voice)
+        private val clipboard = input.findViewById<ImageButton>(R.id.cupertino_clipboard)
         private var requested = false
         private var closed = false
         private val update = Runnable { if (!closed) input.requestApplyInsets() }
 
         init {
+            clipboard.setOnClickListener {
+                ime.onCodeInput(helium314.keyboard.keyboard.internal.keyboard_parser.floris.KeyCode.CLIPBOARD, -1, -1, false)
+            }
+            clipboard.setOnLongClickListener {
+                ime.onCodeInput(helium314.keyboard.keyboard.internal.keyboard_parser.floris.KeyCode.CLIPBOARD_PASTE, -1, -1, false)
+                true
+            }
             globe.setOnClickListener {
                 val subtypes = SubtypeSettings.getEnabledSubtypes(true)
                 val current = RichInputMethodManager.getInstance().currentSubtype.rawSubtype
@@ -108,6 +116,8 @@ object CupertinoNavigationBar {
                 val tint = ColorStateList.valueOf(settings.mColors.get(ColorType.KEY_TEXT))
                 globe.imageTintList = tint
                 voice.imageTintList = tint
+                clipboard.imageTintList = tint
+                clipboard.isForceDarkAllowed = false
                 globe.isForceDarkAllowed = false
                 voice.isForceDarkAllowed = false
                 val voiceAllowed = GoogleVoiceInput.isAllowed(settings)
@@ -116,6 +126,8 @@ object CupertinoNavigationBar {
                     R.string.cupertino_voice_description else R.string.space_swipe_hide_keyboard_entry)
                 voice.tooltipText = voice.contentDescription
             }
+            input.findViewById<helium314.keyboard.latin.suggestions.SuggestionStripView>(R.id.suggestion_strip_view)
+                ?.updateAutoVisibility()
         }
 
         fun close() {

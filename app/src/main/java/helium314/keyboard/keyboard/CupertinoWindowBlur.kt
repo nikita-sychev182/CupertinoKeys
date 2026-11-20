@@ -1,107 +1,147 @@
 // SPDX-License-Identifier: GPL-3.0-only
 package helium314.keyboard.keyboard
 
+import android.app.Dialog
 import android.graphics.drawable.GradientDrawable
-import android.graphics.Rect
 import android.os.Build
+import android.view.Gravity
 import android.view.View
 import android.view.Window
+import android.view.WindowManager
 import androidx.annotation.RequiresApi
 import helium314.keyboard.latin.R
+import helium314.keyboard.latin.LatinIME
 import helium314.keyboard.latin.common.CupertinoColors
 import helium314.keyboard.latin.settings.Settings
 import java.util.function.Consumer
 
-/** Public cross-window blur API only. Never captures, stores or reads app pixels. */
+/** GPU-composited background blur; no screenshots, pixel access, or overlay permission. */
 object CupertinoWindowBlur {
-    private var active: AutoCloseable? = null
+    private var active: BlurSession? = null
 
-    // Android's DecorView uses the background outline's radius, but applies blur across
-    // the whole window. The IME input window extends above the visible keyboard for popups.
-    // In that configuration, use the opaque material instead of blurring the caller's app.
-    internal fun canBlurWindow(keyboard: Rect, width: Int, height: Int): Boolean =
-        width > 0 && height > 0 && keyboard == Rect(0, 0, width, height)
-
-    @JvmStatic fun attach(window: Window?, input: View) {
+    @JvmStatic fun attach(ime: LatinIME, input: View) {
         detach()
-        if (Build.VERSION.SDK_INT < 31 || window == null) return
-        active = BlurSession(window, input)
+        val window = ime.window?.window
+        if (Build.VERSION.SDK_INT >= 31 && window != null) active = BlurSession(window, input, ime)
     }
-
+    @JvmStatic fun refresh() { if (Build.VERSION.SDK_INT >= 31) active?.show() }
+    @JvmStatic fun hide() { if (Build.VERSION.SDK_INT >= 31) active?.hide() }
     @JvmStatic fun detach() {
-        active?.close()
+        if (Build.VERSION.SDK_INT >= 31) active?.close()
         active = null
     }
+    internal fun isActive() = Build.VERSION.SDK_INT >= 31 && active?.background?.isShowing == true
 
     @RequiresApi(31)
-    private class BlurSession(private val window: Window, private val input: View) : AutoCloseable {
-        private val originalBackground = window.decorView.background
-        private val manager = window.windowManager
+    private class BlurSession(private val host: Window, private val input: View, private val ime: LatinIME) : AutoCloseable {
+        private val manager = host.windowManager
+        private val frame = input.findViewById<View>(R.id.main_keyboard_frame)
+        var background: Dialog? = null
+            private set
         private var closed = false
         private var listening = false
+        private var failed = false
+        private var windowVisible = ime.isInputViewShown
         private var appliedSpec: String? = null
-        private val update = Runnable { refresh() }
-        private val blurListener = Consumer<Boolean> { input.post(update) }
-        private val layoutListener = View.OnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
-            input.removeCallbacks(update)
-            input.post(update)
-        }
+        private val update = Runnable { refreshSurface() }
+        private val blurListener = Consumer<Boolean> { requestUpdate() }
+        private val layoutListener = View.OnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> requestUpdate() }
 
         init {
+            host.setBackgroundBlurRadius(0)
             input.addOnLayoutChangeListener(layoutListener)
+            frame?.addOnLayoutChangeListener(layoutListener)
             runCatching {
                 manager.addCrossWindowBlurEnabledListener(input.context.mainExecutor, blurListener)
                 listening = true
             }
-            input.post(update)
+            requestUpdate()
         }
-
-        private fun refresh() {
-            if (closed) return
+        fun requestUpdate() {
+            input.removeCallbacks(update)
+            if (!closed) input.post(update)
+        }
+        fun show() {
+            windowVisible = true
+            requestUpdate()
+        }
+        private fun refreshSurface() {
+            if (closed || frame == null) return
             val settings = Settings.getValues() ?: return
             val colors = settings.mColors as? CupertinoColors
-            val frame = input.findViewById<View>(R.id.main_keyboard_frame) ?: return
-            val decor = window.decorView
-            val location = IntArray(2)
-            frame.getLocationInWindow(location)
-            val enabled = colors != null && !settings.mIsFloatingKeyboard &&
-                runCatching { manager.isCrossWindowBlurEnabled }.getOrDefault(false) &&
-                canBlurWindow(Rect(location[0], location[1], location[0] + frame.width,
-                    location[1] + frame.height), decor.width, decor.height)
+            val enabled = colors != null && !settings.mIsFloatingKeyboard && !ime.isFullscreenMode && !failed && windowVisible &&
+                input.isShown && frame.isShown && input.windowToken != null && frame.width > 0 && frame.height > 0 &&
+                runCatching { manager.isCrossWindowBlurEnabled }.getOrDefault(false)
             if (!enabled) {
-                if (appliedSpec == "opaque:${colors?.dark}") return
-                appliedSpec = "opaque:${colors?.dark}"
-                window.setBackgroundBlurRadius(0)
-                window.setBackgroundDrawable(originalBackground)
+                dismissBackground()
                 colors?.setSurface(frame, false)
                 return
             }
-            val left = location[0].coerceIn(0, decor.width)
-            val top = location[1].coerceIn(0, decor.height)
-            val right = (decor.width - left - frame.width).coerceAtLeast(0)
-            val bottom = (decor.height - top - frame.height).coerceAtLeast(0)
+            val location = IntArray(2)
+            // LAYOUT_IN_SCREEN positions this child in display coordinates, not in
+            // the IME's status-bar-inset coordinate space.
+            frame.getLocationOnScreen(location)
             val density = input.resources.displayMetrics.density
-            val spec = "${colors.dark}:$left:$top:$right:$bottom:${frame.width}:${frame.height}:$density"
-            if (appliedSpec == spec) return
-            appliedSpec = spec
-            val radius = 19f * density
-            val backdrop = GradientDrawable().apply {
-                setColor(if (colors.dark) 0x5030333C else 0x50E7EAF0)
-                cornerRadii = floatArrayOf(radius, radius, radius, radius, 0f, 0f, 0f, 0f)
+            val spec = "${colors.dark}:${location.toList()}:${frame.width}:${frame.height}:$density"
+            if (appliedSpec == spec && background?.isShowing == true) return
+            try {
+                val dialog = background ?: Dialog(input.context, R.style.CupertinoBlurWindow).also { dialog ->
+                    dialog.setCancelable(false)
+                    val window = requireNotNull(dialog.window)
+                    window.attributes = window.attributes.apply {
+                        token = input.windowToken
+                        type = WindowManager.LayoutParams.TYPE_APPLICATION_MEDIA
+                        gravity = Gravity.TOP or Gravity.LEFT
+                        flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                            WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
+                            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
+                        dimAmount = 0f
+                        windowAnimations = 0
+                        title = "Cupertino keyboard backdrop"
+                        setFitInsetsTypes(0)
+                    }
+                    window.setBackgroundDrawable(GradientDrawable().apply {
+                        setColor(0x011C1C20)
+                        cornerRadius = 10f * density
+                    })
+                    // PhoneWindow needs its decor installed before the blur API is called.
+                    window.decorView.isForceDarkAllowed = false
+                    window.setBackgroundBlurRadius((28f * density).toInt().coerceAtMost(120))
+                    background = dialog
+                }
+                val window = requireNotNull(dialog.window)
+                window.attributes = window.attributes.apply {
+                    x = location[0]
+                    y = location[1]
+                    width = frame.width
+                    height = frame.height
+                }
+                if (!dialog.isShowing) dialog.show()
+                colors.setSurface(frame, true)
+                appliedSpec = spec
+            } catch (_: RuntimeException) {
+                // Unsupported vendor window behavior must never take down text input.
+                failed = true
+                dismissBackground()
+                colors.setSurface(frame, false)
             }
-            // Only reached when the entire window is occupied by the keyboard.
-            window.setBackgroundDrawable(CupertinoBlurBackground(backdrop, left, top, right, bottom))
-            window.setBackgroundBlurRadius((28f * density).toInt())
-            colors.setSurface(frame, true)
         }
-
+        fun hide() {
+            windowVisible = false
+            input.removeCallbacks(update)
+            dismissBackground()
+        }
+        private fun dismissBackground() {
+            runCatching { background?.dismiss() }
+            background = null
+            appliedSpec = null
+        }
         override fun close() {
             closed = true
-            input.removeCallbacks(update)
+            hide()
             input.removeOnLayoutChangeListener(layoutListener)
-            if (listening) manager.removeCrossWindowBlurEnabledListener(blurListener)
-            window.setBackgroundBlurRadius(0)
-            window.setBackgroundDrawable(originalBackground)
+            frame?.removeOnLayoutChangeListener(layoutListener)
+            if (listening) runCatching { manager.removeCrossWindowBlurEnabledListener(blurListener) }
         }
     }
 }

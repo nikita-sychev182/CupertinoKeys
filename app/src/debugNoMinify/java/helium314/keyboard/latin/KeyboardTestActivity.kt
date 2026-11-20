@@ -121,5 +121,29 @@ class KeyboardTestActivity : Activity() {
         }
     }
 
+    /** Deliberately high-frequency, non-private content to verify cross-window blur visually. */
+    fun setBackdropProbe(warm: Boolean) {
+        window.setBackgroundDrawable(object : android.graphics.drawable.Drawable() {
+            val paint = android.graphics.Paint()
+            override fun draw(canvas: android.graphics.Canvas) {
+                val stripe = 8f * resources.displayMetrics.density
+                var x = 0f
+                var index = 0
+                while (x < bounds.width()) {
+                    paint.color = if (index++ % 2 == 0) {
+                        if (warm) 0xFFE83868.toInt() else 0xFF2467E8.toInt()
+                    } else {
+                        if (warm) 0xFFFFCDD8.toInt() else 0xFFB8D5FF.toInt()
+                    }
+                    canvas.drawRect(x, 0f, x + stripe, bounds.height().toFloat(), paint)
+                    x += stripe
+                }
+            }
+            override fun setAlpha(alpha: Int) { paint.alpha = alpha }
+            override fun setColorFilter(filter: android.graphics.ColorFilter?) { paint.colorFilter = filter }
+            @Deprecated("Drawable API") override fun getOpacity() = android.graphics.PixelFormat.OPAQUE
+        })
+    }
+
     private var initialFocusHandled = false
 }
