@@ -482,8 +482,9 @@ public final class KeyboardSwitcher {
         return mKeyboardView.isShowingPopupKeysPanel();
     }
 
-    public boolean isShowingStripContainer() {
-        return mStripContainer.isShown();
+    public boolean hasStripContainerSpace() {
+        // INVISIBLE reserves the candidate row so editor insets stay stable while typing.
+        return mStripContainer.getVisibility() != View.GONE;
     }
 
     public View getVisibleKeyboardView() {

@@ -152,7 +152,8 @@ sealed interface KeyData : AbstractKeyData {
         }
 
         private fun getActionKeyPopupKeys(params: KeyboardParams): SimplePopups? =
-            getActionKeyPopupKeyString(params.mId)?.let { createActionPopupKeys(it, params) }
+            if (Settings.getValues().mColors is helium314.keyboard.latin.common.CupertinoColors) null
+            else getActionKeyPopupKeyString(params.mId)?.let { createActionPopupKeys(it, params) }
 
         private fun getActionKeyPopupKeyString(keyboardId: KeyboardId): String? {
             val action = keyboardId.imeAction

@@ -36,12 +36,16 @@ do not allow caption-bar replacement retain the system panel. See the
 The latest [reference-style and emoji checks](docs/testing/ios-reference-2026-11-21.md)
 cover flatter keycaps, reduced height, the voice button, and themed emoji categories.
 
-With the Android 16 bottom panel, the whole suggestion row collapses when there are
-no word candidates and returns when candidates arrive. The clipboard button stays
+With the Android 16 bottom panel, empty suggestion content is hidden while its height
+is reserved. Candidate updates and word deletion therefore do not move the application's
+message composer. The clipboard button stays
 beside the microphone in the bottom panel, including with suggestions and emoji open.
 Its duplicate beside the suggestions is hidden when this bottom panel is available. Explicit tools, app-provided
 suggestions, emoji categories, and clipboard controls remain accessible. Older system
 panels retain the existing row so its clipboard button is not lost.
+The Cupertino Enter/action key has no long-press popup menu; emoji use their dedicated
+outlined smile button. Normal Enter/Send/Next actions remain controlled by the application.
+See [stable-height and Enter checks](docs/testing/stable-suggestions-2026-11-21.md).
 
 Voice input hands control to an enabled Google Voice Typing keyboard. Cupertino Keys
 does not record audio or request microphone permission. Google may send audio to its

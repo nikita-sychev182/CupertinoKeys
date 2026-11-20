@@ -242,7 +242,7 @@ class SuggestionStripView(context: Context, attrs: AttributeSet?, defStyle: Int)
         updateAutoVisibility()
     }
 
-    /** Reclaim the entire row when there is no candidate; preserve explicit tools/external content. */
+    /** Hide empty content without resizing the IME or the application's message composer. */
     fun updateAutoVisibility() {
         val container = parent as? View ?: return
         val hasFooter = rootView.findViewById<View>(R.id.cupertino_navigation_bar)?.visibility == VISIBLE
@@ -255,7 +255,7 @@ class SuggestionStripView(context: Context, attrs: AttributeSet?, defStyle: Int)
             !Settings.getInstance().readShowToolbarOnly()
         val hasCandidates = !suggestedWords.isPunctuationSuggestions && suggestedWords.wordCountToShow > 0
         val show = !autoHide || toolbarContainer.isVisible || isExternalSuggestionVisible || hasCandidates
-        container.visibility = if (show) VISIBLE else GONE
+        container.visibility = if (show) VISIBLE else INVISIBLE
     }
 
     fun setSuggestions(suggestions: SuggestedWords, isRtlLanguage: Boolean) {

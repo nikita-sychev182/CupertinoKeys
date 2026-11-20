@@ -86,7 +86,7 @@ class KeyboardSmokeInstrumentation : Instrumentation() {
         SystemClock.sleep(500)
     }
 
-    private fun touch(code: Int, swipe: Float = 0f, cancel: Boolean = false) {
+    private fun touch(code: Int, swipe: Float = 0f, cancel: Boolean = false, holdMs: Long = 50) {
         val origin = main {
             val view = keyboard()
             val key = requireNotNull(view.keyboard).getKey(code) ?: error("Key $code unavailable")
@@ -102,7 +102,7 @@ class KeyboardSmokeInstrumentation : Instrumentation() {
         if (swipe != 0f) for (step in 1..10) {
             SystemClock.sleep(20)
             event(MotionEvent.ACTION_MOVE, origin[0] + swipe * step / 10)
-        } else SystemClock.sleep(50)
+        } else SystemClock.sleep(holdMs)
         event(if (cancel) MotionEvent.ACTION_CANCEL else MotionEvent.ACTION_UP, origin[0] + swipe)
         waitForIdleSync()
         SystemClock.sleep(150)
@@ -283,7 +283,7 @@ class KeyboardSmokeInstrumentation : Instrumentation() {
                 check("native backdrop follows system availability", main {
                     helium314.keyboard.keyboard.CupertinoWindowBlur.isActive() == (phase != "blur_fallback")
                 })
-                check("neutral empty strip is collapsed", main { !KeyboardSwitcher.getInstance().stripContainer.isShown })
+                check("neutral empty strip content is hidden", main { !KeyboardSwitcher.getInstance().stripContainer.isShown })
                 sendStatus(1, Bundle().apply { putString("stream", "PREVIEW_READY\n") })
                 SystemClock.sleep(8000)
                 SettingsActivity.forceNight = null
@@ -292,18 +292,30 @@ class KeyboardSmokeInstrumentation : Instrumentation() {
                 button("Clear")
                 SystemClock.sleep(500)
                 fun frameHeight() = main { keyboard().rootView.findViewById<View>(R.id.main_keyboard_frame).height }
-                check("empty input has no suggestion row", main { !KeyboardSwitcher.getInstance().stripContainer.isShown })
+                check("empty suggestions are hidden but reserve their space", main {
+                    KeyboardSwitcher.getInstance().stripContainer.visibility == View.INVISIBLE
+                })
                 check("clipboard remains available below", main { keyboard().rootView.findViewById<View>(R.id.cupertino_clipboard).isShown })
-                val compactHeight = frameHeight()
-                "hello".forEach { touch(it.code) }
+                val stableHeight = frameHeight()
+                fun reportedTop() = main {
+                    android.inputmethodservice.InputMethodService.Insets().also { ime().onComputeInsets(it) }.contentTopInsets
+                }
+                val stableTop = reportedTop()
+                "hello".forEach {
+                    touch(it.code)
+                    check("typing character keeps frame and editor inset stable", frameHeight() == stableHeight && reportedTop() == stableTop)
+                }
                 SystemClock.sleep(600)
                 check("word candidates reveal row", main { KeyboardSwitcher.getInstance().stripContainer.isShown })
-                check("frame grows only by suggestion row", frameHeight() == compactHeight + main { KeyboardSwitcher.getInstance().stripContainer.height })
-                repeat(5) { touch(KeyCode.DELETE) }
+                check("candidate row does not resize keyboard", frameHeight() == stableHeight)
+                repeat(5) {
+                    touch(KeyCode.DELETE)
+                    check("deleting character keeps frame and editor inset stable", frameHeight() == stableHeight && reportedTop() == stableTop)
+                }
                 SystemClock.sleep(500)
                 check("backspace clears field", text().isEmpty())
                 check("deleting word hides row again", main { !KeyboardSwitcher.getInstance().stripContainer.isShown })
-                check("compact frame height restored", frameHeight() == compactHeight)
+                check("empty input keeps the same height", frameHeight() == stableHeight)
                 "hello".forEach { touch(it.code) }
                 main { editor().setSelection(0) }
                 SystemClock.sleep(500)
@@ -312,9 +324,18 @@ class KeyboardSmokeInstrumentation : Instrumentation() {
                 button("Clear")
                 SystemClock.sleep(600)
                 check("app clearing its field also hides row", main { !KeyboardSwitcher.getInstance().stripContainer.isShown })
+                check("app clear preserves editor inset", reportedTop() == stableTop)
                 "test".forEach { touch(it.code) }
                 check("typing after app clear starts a fresh word", text().equals("test", ignoreCase = true))
                 repeat(4) { touch(KeyCode.DELETE) }
+                check("Enter has no popup menu", main {
+                    requireNotNull(requireNotNull(keyboard().keyboard).getKey(10)).popupKeys.isNullOrEmpty()
+                })
+                touch(10, holdMs = 1200)
+                check("holding Enter does not open emoji or popup", main {
+                    !KeyboardSwitcher.getInstance().isShowingEmojiPalettes && !KeyboardSwitcher.getInstance().isShowingPopupKeysPanel
+                })
+                check("Enter still inserts a newline", text() == "\n")
                 navigationTap(R.id.cupertino_voice, longPress = true)
                 check("backdrop removed when keyboard hides", main { !helium314.keyboard.keyboard.CupertinoWindowBlur.isActive() })
                 button("Text")
