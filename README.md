@@ -1,4 +1,56 @@
-# HeliBoard
+# Cupertino Keys — Android keyboard
+
+Early development fork of [HeliBorg/HeliBoard](https://github.com/HeliBorg/HeliBoard),
+based on the original **v4.2** commit `0c60dffb03a4e2e7a37cb82210f5299f93c03979`.
+The working branch is `cupertino`; `upstream` points at the original repository.
+This is an independent project, not an Apple or HeliBoard release. Changes in this fork are AI-assisted.
+Original licenses and attribution are retained below and in the license files.
+
+The first milestone adds an iOS-inspired light/dark palette, bordered keys, a clean
+suggestion strip, RU/EN setup, and horizontal spacebar swipes to switch languages.
+It is **not yet a visually verified, pixel-identical iOS keyboard**: layout,
+animations and touch feel still need device testing and refinement.
+
+Privacy changes:
+- No internet permission, shared Android dictionary permissions, or contacts access.
+- Personal dictionary uses a non-exported app-private SQLite provider in `noBackupFilesDir`.
+- The existing on-device prediction/learning engine and bundled RU/EN dictionaries are retained.
+- Cloud backup and device-transfer exclusions cover both credential and device-protected storage.
+- Gesture sample collection and its sharing provider are disabled; input diagnostics and crash-log export are disabled.
+- Clipboard history is off by default. Password/no-learning field handling is inherited from HeliBoard.
+- No existing system dictionary is imported automatically. Uninstalling erases app-private learned data.
+
+The keyboard necessarily sends committed text to the application being typed into.
+Manual export features inherited from HeliBoard are user-initiated; the keyboard
+does not upload its dictionary. Rooted-device tools and vendor migration utilities
+must be evaluated separately from Android's documented backup APIs.
+
+## Build and verify
+
+The application ID is `dev.cupertinokeys.keyboard` (`.debug` for development builds),
+so it can coexist with HeliBoard. The display name is **Cupertino Keys**.
+
+Use Android Studio with JDK 17 and the SDK/NDK versions pinned by upstream
+(compile/target SDK 37, min SDK 21, NDK 28.0.13004108). Then:
+
+```powershell
+python tools/check_privacy.py
+.\gradlew.bat :app:testRunTestsUnitTest --tests '*LocalDictionaryProviderTest' --tests '*CupertinoDefaultsTest'
+.\gradlew.bat :app:assembleDebugNoMinify
+python tools/check_privacy.py --merged
+```
+
+The `Cupertino Keys` GitHub Actions workflow runs these checks and uploads a development APK.
+Tests cover dictionary persistence, locale separation, duplicate handling, private URIs,
+and first-run language defaults on API 28 and 36. A successful CI run is required before
+treating the APK as tested. Source checks alone do not establish runtime behavior.
+
+Primary device: **Xiaomi 14 / Android 16**. Secondary: **Xiaomi Mi 8**, OS version to be read via ADB.
+See [device test steps](docs/DEVICE_TESTING.md).
+
+---
+
+# Original HeliBoard documentation
 HeliBoard is a privacy-conscious and customizable open-source keyboard, based on AOSP / OpenBoard.
 Does not use internet permission, and thus is 100% offline.
 

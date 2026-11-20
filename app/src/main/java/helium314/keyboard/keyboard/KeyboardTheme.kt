@@ -49,6 +49,8 @@ private constructor(val themeId: Int, @JvmField val mStyleId: Int) {
         const val STYLE_ROUNDED = "Rounded"
 
         // new themes that are just colors
+        const val THEME_CUPERTINO_LIGHT = "cupertino_light"
+        const val THEME_CUPERTINO_DARK = "cupertino_dark"
         const val THEME_LIGHT = "light"
         const val THEME_HOLO_WHITE = "holo_white"
         const val THEME_DARK = "dark"
@@ -66,6 +68,7 @@ private constructor(val themeId: Int, @JvmField val mStyleId: Int) {
         const val THEME_SAND = "sand"
         const val THEME_VIOLETTE = "violette"
         fun getAvailableDefaultColors(prefs: SharedPreferences, isNight: Boolean) = listOfNotNull(
+            if (!isNight) THEME_CUPERTINO_LIGHT else null, THEME_CUPERTINO_DARK,
             if (!isNight) THEME_LIGHT else null, THEME_DARK,
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) THEME_DYNAMIC else null,
             if (prefs.getString(Settings.PREF_THEME_STYLE, Defaults.PREF_THEME_STYLE) == STYLE_HOLO) THEME_HOLO_WHITE else null,
@@ -148,6 +151,20 @@ private constructor(val themeId: Int, @JvmField val mStyleId: Int) {
             val hasBorders = prefs.getBoolean(Settings.PREF_THEME_KEY_BORDERS, Defaults.PREF_THEME_KEY_BORDERS)
             val backgroundImage = Settings.readUserBackgroundImage(context, isNight)
             return when (themeName) {
+                THEME_CUPERTINO_LIGHT -> DefaultColors(
+                    themeStyle, hasBorders,
+                    "#007AFF".toColorInt(), "#D1D3D9".toColorInt(),
+                    Color.WHITE, "#ADB3BE".toColorInt(), Color.WHITE,
+                    Color.BLACK, "#50545C".toColorInt(),
+                    keyboardBackground = backgroundImage
+                )
+                THEME_CUPERTINO_DARK -> DefaultColors(
+                    themeStyle, hasBorders,
+                    "#0A84FF".toColorInt(), "#1C1C1E".toColorInt(),
+                    "#636366".toColorInt(), "#3A3A3C".toColorInt(), "#636366".toColorInt(),
+                    Color.WHITE, "#EBEBF5".toColorInt(),
+                    keyboardBackground = backgroundImage
+                )
                 THEME_DYNAMIC -> {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) DynamicColors(context, themeStyle, hasBorders, backgroundImage)
                     else getThemeColors(THEME_LIGHT, themeStyle, context, prefs, isNight)

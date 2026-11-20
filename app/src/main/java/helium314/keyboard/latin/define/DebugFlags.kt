@@ -26,8 +26,8 @@ object DebugFlags {
     var DEBUG_ENABLED = false
 
     fun init(context: Context) {
-        DEBUG_ENABLED = context.prefs().getBoolean(DebugSettings.PREF_DEBUG_MODE, Defaults.PREF_DEBUG_MODE)
-        CrashReportExceptionHandler(context.applicationContext).install()
+        // Do not collect input diagnostics or write logs into external storage.
+        DEBUG_ENABLED = false
     }
 }
 

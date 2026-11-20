@@ -7,7 +7,7 @@ package helium314.keyboard.latin
 
 import android.Manifest
 import android.content.Context
-import android.provider.UserDictionary
+import helium314.keyboard.latin.dictionary.LocalUserDictionary as UserDictionary
 import android.util.LruCache
 import helium314.keyboard.keyboard.Keyboard
 import helium314.keyboard.keyboard.emoji.SupportedEmojis

@@ -188,6 +188,7 @@ class GestureDataDao(val db: Database) {
 
         /** Returns the instance or creates a new one. Returns null if instance can't be created (e.g. no access to db due to device being locked) */
         fun getInstance(context: Context): GestureDataDao? {
+            if (!GestureDataGatheringSettings.COLLECTION_ENABLED) return null
             if (instance == null)
                 try {
                     val dao = GestureDataDao(Database.getInstance(context))

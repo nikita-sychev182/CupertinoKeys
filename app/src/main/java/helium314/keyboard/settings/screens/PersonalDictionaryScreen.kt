@@ -4,7 +4,7 @@ package helium314.keyboard.settings.screens
 import android.content.ContentResolver
 import android.content.Context
 import android.database.Cursor
-import android.provider.UserDictionary
+import helium314.keyboard.latin.dictionary.LocalUserDictionary as UserDictionary
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -265,7 +265,10 @@ private data class Word(val word: String, val shortcut: String?, val weight: Int
 private fun getAll(locale: Locale?, context: Context): List<Word> {
     val cursor = createCursor(locale, context) ?: return emptyList()
 
-    if (!cursor.moveToFirst()) return emptyList()
+    if (!cursor.moveToFirst()) {
+        cursor.close()
+        return emptyList()
+    }
     val result = mutableListOf<Word>()
     val wordIndex = cursor.getColumnIndexOrThrow(UserDictionary.Words.WORD)
     val shortcutIndex = cursor.getColumnIndexOrThrow(UserDictionary.Words.SHORTCUT)
@@ -324,20 +327,12 @@ private const val DELETE_SELECTION_WITH_SHORTCUT_AND_WITH_ALL_LOCALES = (UserDic
         + UserDictionary.Words.LOCALE + " is null")
 
 private const val DELETE_SELECTION_WITHOUT_SHORTCUT_AND_WITH_LOCALE = (UserDictionary.Words.WORD + "=? AND "
-        + UserDictionary.Words.SHORTCUT + " is null AND "
-        + UserDictionary.Words.FREQUENCY + "=? AND "
-        + UserDictionary.Words.LOCALE + "=? OR "
-
-        + UserDictionary.Words.SHORTCUT + "='' AND "
+        + "(" + UserDictionary.Words.SHORTCUT + " is null OR " + UserDictionary.Words.SHORTCUT + "='') AND "
         + UserDictionary.Words.FREQUENCY + "=? AND "
         + UserDictionary.Words.LOCALE + "=?")
 
 private const val DELETE_SELECTION_WITHOUT_SHORTCUT_AND_WITH_ALL_LOCALES = (UserDictionary.Words.WORD + "=? AND "
-        + UserDictionary.Words.SHORTCUT + " is null AND "
-        + UserDictionary.Words.FREQUENCY + "=? AND "
-        + UserDictionary.Words.LOCALE + " is null OR "
-
-        + UserDictionary.Words.SHORTCUT + "='' AND "
+        + "(" + UserDictionary.Words.SHORTCUT + " is null OR " + UserDictionary.Words.SHORTCUT + "='') AND "
         + UserDictionary.Words.FREQUENCY + "=? AND "
         + UserDictionary.Words.LOCALE + " is null")
 

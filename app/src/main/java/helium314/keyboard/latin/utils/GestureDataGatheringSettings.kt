@@ -34,6 +34,8 @@ import kotlin.random.Random
 // will be removed once the project is finished
 
 object GestureDataGatheringSettings {
+    // This fork never records or exports typing samples.
+    const val COLLECTION_ENABLED = false
     private const val PREF_WORD_EXCLUSIONS = "gesture_data_word_exclusions"
     private const val PREF_APP_EXCLUSIONS = "gesture_data_app_exclusions"
     private const val PREF_APP_EXCLUSIONS_INCLUDE_BY_DEFAULT = "gesture_data_app_exclusions_ignore_by_default"
@@ -49,9 +51,10 @@ object GestureDataGatheringSettings {
 
 
     fun isInActiveGatheringMode(editorInfo: EditorInfo) =
-        dictTestImeOption == editorInfo.privateImeOptions && gestureDataActiveFacilitator != null
+        COLLECTION_ENABLED && dictTestImeOption == editorInfo.privateImeOptions && gestureDataActiveFacilitator != null
 
     fun isBackgroundGatheringEnabled(prefs: SharedPreferences): Boolean {
+        if (!COLLECTION_ENABLED) return false
         if (!prefs.getBoolean(PREF_BACKGROUND_GATHERING_ENABLED, false)) return false
         val disabledBefore = prefs.getLong(PREF_BACKGROUND_DISABLED_BEFORE_TIME_MILLIS, 0L)
         if (disabledBefore > SystemClock.elapsedRealtime() + 5 * 60 * 1000L) {
@@ -173,6 +176,7 @@ object GestureDataGatheringSettings {
 
     /** shows dialog promoting contribution of gesture data, or ask to do again if last contribution was more than 2 weeks ago */
     @Composable fun GestureDataPromotionReminderDialog() {
+        if (!COLLECTION_ENABLED) return
         val ctx = LocalContext.current
         val promotionShowNext = ctx.prefs().getLong(PREF_SHOW_PROMOTION_DIALOG_NEXT, 0)
         val reminderShowNext = ctx.prefs().getLong(PREF_SHOW_REMINDER_DIALOG_NEXT, 0)

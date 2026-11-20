@@ -9,7 +9,7 @@ package helium314.keyboard.latin.spellcheck
 import android.database.ContentObserver
 import android.os.Binder
 import android.os.Build
-import android.provider.UserDictionary.Words
+import helium314.keyboard.latin.dictionary.LocalUserDictionary.Words
 import android.service.textservice.SpellCheckerService
 import android.text.TextUtils
 import android.util.LruCache

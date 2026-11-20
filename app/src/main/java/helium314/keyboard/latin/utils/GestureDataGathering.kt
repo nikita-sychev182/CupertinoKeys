@@ -46,6 +46,7 @@ object BackgroundGatheringCache {
     }
 
     fun addWord(word: WordData) {
+        if (!GestureDataGatheringSettings.COLLECTION_ENABLED) return
         if (KeyboardSwitcher.getInstance().keyboard?.mId?.internalAction?.code == KeyCode.INLINE_EMOJI_SEARCH_DONE) {
             if (DEBUG) Log.i(TAG, "inline emoji search, not adding anything")
             return

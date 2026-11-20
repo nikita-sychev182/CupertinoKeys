@@ -12,60 +12,70 @@ import java.util.Date
 object Log {
     @JvmStatic
     fun wtf(tag: String?, message: String) {
+        if (!helium314.keyboard.latin.define.DebugFlags.DEBUG_ENABLED) return
         log(LogLine('F', tag, message))
         android.util.Log.wtf(tag, message)
     }
 
     @JvmStatic
     fun e(tag: String?, message: String, e: Throwable?) {
+        if (!helium314.keyboard.latin.define.DebugFlags.DEBUG_ENABLED) return
         log(LogLine('E', tag, "$message\n${e?.stackTraceToString()}"))
         android.util.Log.e(tag, message, e)
     }
 
     @JvmStatic
     fun e(tag: String?, message: String) {
+        if (!helium314.keyboard.latin.define.DebugFlags.DEBUG_ENABLED) return
         log(LogLine('E', tag, message))
         android.util.Log.e(tag, message)
     }
 
     @JvmStatic
     fun w(tag: String?, message: String, e: Throwable?) {
+        if (!helium314.keyboard.latin.define.DebugFlags.DEBUG_ENABLED) return
         log(LogLine('W', tag, "$message\n${e?.stackTraceToString()}"))
         android.util.Log.w(tag, message, e)
     }
 
     @JvmStatic
     fun w(tag: String?, message: String) {
+        if (!helium314.keyboard.latin.define.DebugFlags.DEBUG_ENABLED) return
         log(LogLine('W', tag, message))
         android.util.Log.w(tag, message)
     }
 
     @JvmStatic
     fun i(tag: String?, message: String, e: Throwable?) {
+        if (!helium314.keyboard.latin.define.DebugFlags.DEBUG_ENABLED) return
         log(LogLine('I', tag, "$message\n${e?.stackTraceToString()}"))
         android.util.Log.i(tag, message, e)
     }
 
     @JvmStatic
     fun i(tag: String?, message: String) {
+        if (!helium314.keyboard.latin.define.DebugFlags.DEBUG_ENABLED) return
         log(LogLine('I', tag, message))
         android.util.Log.i(tag, message)
     }
 
     @JvmStatic
     fun d(tag: String?, message: String, e: Throwable?) {
+        if (!helium314.keyboard.latin.define.DebugFlags.DEBUG_ENABLED) return
         log(LogLine('D', tag, "$message\n${e?.stackTraceToString()}"))
         android.util.Log.d(tag, message, e)
     }
 
     @JvmStatic
     fun d(tag: String?, message: String) {
+        if (!helium314.keyboard.latin.define.DebugFlags.DEBUG_ENABLED) return
         log(LogLine('D', tag, message))
         android.util.Log.d(tag, message)
     }
 
     @JvmStatic
     fun v(tag: String?, message: String) {
+        if (!helium314.keyboard.latin.define.DebugFlags.DEBUG_ENABLED) return
         log(LogLine('V', tag, message))
         android.util.Log.v(tag, message)
     }

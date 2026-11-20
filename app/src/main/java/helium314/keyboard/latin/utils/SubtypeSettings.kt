@@ -211,8 +211,24 @@ object SubtypeSettings {
         reloadSystemLocales(context)
 
         loadResourceSubtypes(context.resources)
+        initializeCupertinoLanguages(context.prefs())
         loadAdditionalSubtypes(context.prefs())
         loadEnabledSubtypes(context)
+    }
+
+    // Seed the first install only. Choosing system languages later must remain possible.
+    private fun initializeCupertinoLanguages(prefs: SharedPreferences) {
+        if (prefs.getBoolean("cupertino_languages_initialized", false)) return
+        val initial = listOf(Locale.forLanguageTag("ru"), Locale.US).mapNotNull {
+            resourceSubtypesByLocale[it]?.firstOrNull()?.toSettingsSubtype()
+        }
+        prefs.edit {
+            if (!prefs.contains(Settings.PREF_ENABLED_SUBTYPES) && initial.isNotEmpty()) {
+                putString(Settings.PREF_ENABLED_SUBTYPES, createPrefSubtypes(initial))
+                putString(Settings.PREF_SELECTED_SUBTYPE, initial.first().toPref())
+            }
+            putBoolean("cupertino_languages_initialized", true)
+        }
     }
 
     @Suppress("SameReturnValue")

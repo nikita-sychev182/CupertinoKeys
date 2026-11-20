@@ -11,7 +11,7 @@ import android.database.ContentObserver;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteException;
 import android.net.Uri;
-import android.provider.UserDictionary.Words;
+import helium314.keyboard.latin.dictionary.LocalUserDictionary.Words;
 import android.text.TextUtils;
 
 import com.android.inputmethod.latin.BinaryDictionary;
