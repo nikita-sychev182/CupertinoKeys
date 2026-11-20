@@ -58,9 +58,12 @@ fun MainSettingsScreen(
                 Modifier.verticalScroll(rememberScrollState()).then(Modifier.padding(innerPadding))
             ) {
                 // Keep the most commonly requested controls on the first screen.
+                helium314.keyboard.settings.FeedbackStatus()
                 SettingsActivity.settingsContainer[Settings.PREF_SOUND_ON]?.Preference()
-                if (AudioAndHapticFeedbackManager.getInstance().hasVibrator())
+                if (AudioAndHapticFeedbackManager.getInstance().hasVibrator()) {
                     SettingsActivity.settingsContainer[Settings.PREF_VIBRATE_ON]?.Preference()
+                    SettingsActivity.settingsContainer[Settings.PREF_VIBRATE_IN_DND_MODE]?.Preference()
+                }
                 SettingsActivity.settingsContainer[Settings.PREF_ENABLE_CLIPBOARD_HISTORY]?.Preference()
                 Preference(
                     name = stringResource(R.string.language_and_layouts_title),

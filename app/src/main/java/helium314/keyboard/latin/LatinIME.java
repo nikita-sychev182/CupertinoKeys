@@ -1389,6 +1389,16 @@ public class LatinIME extends InputMethodService implements
         launchSettings();
     }
 
+    public void showClipboardEnableDialog() {
+        if (isShowingOptionDialog() || mInputView == null) return;
+        mOptionsDialog = helium314.keyboard.latin.utils.ClipboardEnableDialogKt.createClipboardEnableDialog(
+                this, mInputView.getWindowToken(), () -> mHandler.post(() -> {
+                    loadSettings();
+                    mKeyboardSwitcher.setClipboardKeyboard();
+                }));
+        mOptionsDialog.show();
+    }
+
     public boolean showInputPickerDialog() {
         if (isShowingOptionDialog()) return false;
         if (mRichImm.hasMultipleEnabledIMEsOrSubtypes(true)) {

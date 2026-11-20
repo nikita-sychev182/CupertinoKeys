@@ -108,6 +108,66 @@ class KeyboardSmokeInstrumentation : Instrumentation() {
         SystemClock.sleep(150)
     }
 
+    private fun clipboardAccessChecks() {
+        val prefs = targetContext.prefs()
+        val key = Settings.PREF_ENABLE_CLIPBOARD_HISTORY
+        val old = if (prefs.contains(key)) prefs.getBoolean(key, false) else null
+        fun dialog() = LatinIME::class.java.getDeclaredField("mOptionsDialog").apply { isAccessible = true }
+            .get(ime()) as android.app.AlertDialog
+        fun tapClipboard() {
+            main {
+                val root = keyboard().rootView
+                val target = root.findViewById<ViewGroup>(R.id.pinned_keys)
+                    .findViewWithTag<View>(helium314.keyboard.latin.utils.ToolbarKey.CLIPBOARD)
+                check("clipboard target is visible", target.isShown)
+                val location = IntArray(2)
+                val rootLocation = IntArray(2)
+                target.getLocationInWindow(location)
+                root.getLocationInWindow(rootLocation)
+                val x = location[0] + target.width / 2
+                val y = location[1] + target.height / 2
+                val insets = android.inputmethodservice.InputMethodService.Insets()
+                ime().onComputeInsets(insets)
+                check("clipboard target is inside reported touch region", insets.touchableRegion.contains(x, y))
+                val now = SystemClock.uptimeMillis()
+                for (action in listOf(MotionEvent.ACTION_DOWN, MotionEvent.ACTION_UP)) {
+                    val event = MotionEvent.obtain(now, now + if (action == MotionEvent.ACTION_UP) 70 else 0,
+                        action, (x - rootLocation[0]).toFloat(), (y - rootLocation[1]).toFloat(), 0)
+                    check("clipboard touch dispatched through root", root.dispatchTouchEvent(event))
+                    event.recycle()
+                }
+            }
+            waitForIdleSync()
+            SystemClock.sleep(400)
+        }
+        try {
+            main { prefs.edit().putBoolean(key, false).commit() }
+            button("Text")
+            tapClipboard()
+            check("disabled history opens enable dialog", main { dialog().isShowing })
+            sendStatus(1, Bundle().apply { putString("stream", "PREVIEW_READY\n") })
+            SystemClock.sleep(8000)
+            main { dialog().getButton(android.app.AlertDialog.BUTTON_NEGATIVE).performClick() }
+            check("cancel keeps history disabled", !prefs.getBoolean(key, true))
+            tapClipboard()
+            main { dialog().getButton(android.app.AlertDialog.BUTTON_POSITIVE).performClick() }
+            waitForIdleSync()
+            SystemClock.sleep(400)
+            check("enable is saved", prefs.getBoolean(key, false))
+            check("enable opens clipboard panel", main {
+                views(keyboard().rootView).filterIsInstance<helium314.keyboard.keyboard.clipboard.ClipboardHistoryView>()
+                    .any { it.isShown }
+            })
+        } finally {
+            main {
+                val d = runCatching { dialog() }.getOrNull()
+                d?.dismiss()
+                prefs.edit().apply { if (old == null) remove(key) else putBoolean(key, old) }.commit()
+            }
+            button("Text")
+        }
+    }
+
     private fun clipboardChecks() {
         val prefs = targetContext.prefs()
         val keys = listOf(Settings.PREF_ENABLE_CLIPBOARD_HISTORY, Settings.PREF_SOUND_ON, Settings.PREF_VIBRATE_ON)
@@ -212,7 +272,9 @@ class KeyboardSmokeInstrumentation : Instrumentation() {
                 if (!main { KeyboardSwitcher.getInstance().mainKeyboardView?.isShown == true }) SystemClock.sleep(200)
             }
             check("IME is visible", main { keyboard().isShown })
-            if (phase == "clipboard") {
+            if (phase == "clipboard_access") {
+                clipboardAccessChecks()
+            } else if (phase == "clipboard") {
                 clipboardChecks()
             } else if (phase.startsWith("emoji_")) {
                 touch(KeyCode.EMOJI)

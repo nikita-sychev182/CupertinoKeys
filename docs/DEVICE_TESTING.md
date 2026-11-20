@@ -78,6 +78,11 @@ password/no-learning fields, and disabling collection. It restores preferences a
 the original text clipboard and deletes its own entries. Audible/tactile feedback
 still needs a human check; silent and Do Not Disturb modes remain respected.
 
+Use `--phase clipboard_access` to check real view-dispatched taps on the pinned
+button, its IME touch region, the disabled-history prompt, cancellation, and opening
+the panel after enabling. This phase captures the prompt in the disposable Activity
+and restores the previous history preference. It never replaces the system clipboard.
+
 ## Work profile on Xiaomi 14
 
 Status: the user confirmed the combined manual personal/Shelter check passed;

@@ -774,9 +774,10 @@ public final class InputLogic {
             case KeyCode.CLIPBOARD:
                 // Note: If clipboard history is enabled, switching to clipboard keyboard
                 // is being handled in {@link KeyboardState#onEvent(Event,int)}.
-                // If disabled, current clipboard content is committed.
+                // The history button must explain how to enable history instead of silently
+                // pasting nothing from an empty system clipboard. Long-press still pastes.
                 if (!sv.mClipboardHistoryEnabled) {
-                    paste(mLatinIME.getCurrentInputEditorInfo().packageName);
+                    mLatinIME.showClipboardEnableDialog();
                 }
                 break;
             case KeyCode.CLIPBOARD_PASTE:

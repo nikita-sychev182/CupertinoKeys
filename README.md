@@ -52,6 +52,9 @@ to pin it. The pinned clipboard button beside suggestions opens history; hold th
 button to paste the current system clip. File collection defaults to off. History
 does not collect in password/no-learning/incognito fields or save clips explicitly
 marked sensitive. Existing customized toolbar and retention settings are preserved.
+Tapping the clipboard button while history is off offers to enable it. The settings
+home explains when Do Not Disturb or silent mode suppresses feedback and exposes the
+separate option for vibration during Do Not Disturb.
 
 The keyboard necessarily sends committed text to the application being typed into.
 Manual export features inherited from HeliBoard are user-initiated; the keyboard

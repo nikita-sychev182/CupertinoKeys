@@ -109,7 +109,10 @@ class KeyboardTestActivity : Activity() {
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
-        if (hasFocus) (currentFocus as? EditText)?.let {
+        // Only repair the initial launch. Restarting input after an IME-owned dialog
+        // closes resets its selected panel and makes history/picker tests misleading.
+        if (hasFocus && !initialFocusHandled) (currentFocus as? EditText)?.let {
+            initialFocusHandled = true
             it.postDelayed({
                 val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
                 imm.restartInput(it)
@@ -117,4 +120,6 @@ class KeyboardTestActivity : Activity() {
             }, 350)
         }
     }
+
+    private var initialFocusHandled = false
 }
