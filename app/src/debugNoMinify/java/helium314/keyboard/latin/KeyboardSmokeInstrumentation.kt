@@ -55,7 +55,31 @@ class KeyboardSmokeInstrumentation : Instrumentation() {
     }
     private fun keyboard() = KeyboardSwitcher.getInstance().mainKeyboardView
         ?: error("Select Cupertino Keys as the current keyboard first")
+    private fun ime() = KeyboardSwitcher::class.java.getDeclaredField("mLatinIME")
+        .apply { isAccessible = true }.get(KeyboardSwitcher.getInstance()) as LatinIME
     private fun language() = main { requireNotNull(keyboard().keyboard).mId.locale.language }
+
+    private fun navigationTap(id: Int) {
+        main {
+            val target = keyboard().rootView.findViewById<View>(id)
+            val position = IntArray(2)
+            target.getLocationInWindow(position)
+            val insets = android.inputmethodservice.InputMethodService.Insets()
+            ime().onComputeInsets(insets)
+            val x = position[0] + target.width / 2
+            val y = position[1] + target.height / 2
+            check("navigation target $id is inside IME touch region", insets.touchableRegion.contains(x, y))
+            val now = SystemClock.uptimeMillis()
+            for (action in listOf(MotionEvent.ACTION_DOWN, MotionEvent.ACTION_UP)) {
+                val event = MotionEvent.obtain(now, now + if (action == MotionEvent.ACTION_UP) 50 else 0,
+                    action, x.toFloat(), y.toFloat(), 0)
+                keyboard().rootView.dispatchTouchEvent(event)
+                event.recycle()
+            }
+        }
+        waitForIdleSync()
+        SystemClock.sleep(500)
+    }
 
     private fun touch(code: Int, swipe: Float = 0f, cancel: Boolean = false) {
         val origin = main {
@@ -94,6 +118,72 @@ class KeyboardSmokeInstrumentation : Instrumentation() {
                 if (!main { KeyboardSwitcher.getInstance().mainKeyboardView?.isShown == true }) SystemClock.sleep(200)
             }
             check("IME is visible", main { keyboard().isShown })
+            if (phase == "work_setup") {
+                if (language() != "en") touch(32, 250f)
+                button("Add test word")
+                check("work-profile test word ready in personal IME dictionary", dictionaryCount() == 1)
+                "ctw".forEach { touch(it.code) }
+            } else if (phase == "work_cleanup") {
+                button("Delete test word")
+                check("work-profile test word removed", dictionaryCount() == 0)
+            } else if (phase == "navigation") {
+                check("custom bottom panel visible", main {
+                    keyboard().rootView.findViewById<View>(R.id.cupertino_navigation_bar).isShown
+                })
+                val beforeLanguage = language()
+                touch(','.code)
+                check("comma key available in first alphabet", text() == ",")
+                button("Clear")
+                val beforeText = text()
+                navigationTap(R.id.cupertino_language)
+                check("bottom globe switches language without text insertion", language() != beforeLanguage && text() == beforeText)
+                touch(','.code)
+                check("comma key available in second alphabet", text() == ",")
+                button("Clear")
+                navigationTap(R.id.cupertino_language)
+                check("bottom globe cycles back", language() == beforeLanguage)
+                navigationTap(R.id.cupertino_hide)
+                check("bottom right button hides IME", main { !ime().isInputViewShown })
+                button("Text")
+                SystemClock.sleep(500)
+                check("IME reopens with custom panel", main {
+                    ime().isInputViewShown && keyboard().rootView.findViewById<View>(R.id.cupertino_navigation_bar).isShown
+                })
+            } else if (phase == "geometry") {
+                val diagnostics = main {
+                    val root = keyboard().rootView
+                    val frame = root.findViewById<View>(R.id.main_keyboard_frame)
+                    val navigation = root.findViewById<View>(R.id.cupertino_navigation_bar)
+                    val location = IntArray(2)
+                    frame.getLocationInWindow(location)
+                    val insets = root.rootWindowInsets
+                    val keys = requireNotNull(keyboard().keyboard)
+                    val keysBottom = keys.sortedKeys.maxOf { it.y + it.height }
+                    "root=${root.width}x${root.height} frame=${frame.width}x${frame.height}@${location.toList()} " +
+                        "keysView=${keyboard().height} occupied=${keys.mOccupiedHeight} lastKeyBottom=$keysBottom " +
+                        "keyPadding=${keyboard().paddingTop},${keyboard().paddingBottom} " +
+                        "padding=${root.paddingLeft},${root.paddingTop},${root.paddingRight},${root.paddingBottom} " +
+                        "footer=${navigation.isShown}:${navigation.height} " +
+                        if (android.os.Build.VERSION.SDK_INT >= 30) "caption=${insets.getInsetsIgnoringVisibility(android.view.WindowInsets.Type.captionBar())} " +
+                            "captionVisible=${insets.isVisible(android.view.WindowInsets.Type.captionBar())} " +
+                            "nav=${insets.getInsets(android.view.WindowInsets.Type.navigationBars())} " +
+                            "gestures=${insets.getInsets(android.view.WindowInsets.Type.systemGestures())}" else ""
+                }
+                check("IME background has no top padding", main { keyboard().rootView.paddingTop == 0 })
+                check("custom panel does not duplicate navigation padding above globe", main {
+                    !keyboard().rootView.findViewById<View>(R.id.cupertino_navigation_bar).isShown || keyboard().paddingBottom == 0
+                })
+                check("reported IME top matches visible keyboard frame", main {
+                    val frame = keyboard().rootView.findViewById<View>(R.id.main_keyboard_frame)
+                    val location = IntArray(2)
+                    frame.getLocationInWindow(location)
+                    val insets = android.inputmethodservice.InputMethodService.Insets()
+                    ime().onComputeInsets(insets)
+                    insets.contentTopInsets >= 0 && insets.contentTopInsets == location[1]
+                })
+                sendStatus(1, Bundle().apply { putString("stream", "GEOMETRY: $diagnostics\n") })
+                SystemClock.sleep(8000)
+            } else
             if (phase.startsWith("preview_")) {
                 val russian = phase == "preview_dark"
                 if (language() != if (russian) "ru" else "en") touch(32, 250f)

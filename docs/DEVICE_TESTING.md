@@ -1,6 +1,7 @@
 # Device checks for Cupertino Keys
 
 Physical-device results: [Mi 8, 2026-11-20](testing/mi8-2026-11-20.md).
+Android 16 regression results: [Xiaomi 14, 2026-11-21](testing/xiaomi14-2026-11-21.md).
 
 ## Connect and identify
 
@@ -59,7 +60,10 @@ can recolor Canvas text even when the application passes the correct Paint color
 
 ## Work profile on Xiaomi 14
 
-Status: not yet verified on the device. Standard Android shares the personal
+Status: the user confirmed the combined manual personal/Shelter check passed;
+HyperOS denies shell access to user 11, so work-profile behavior was not independently
+verified through ADB.
+Standard Android shares the personal
 profile's IME with work apps; this is not a copy/sync of two installations.
 
 1. Install the local APK in the personal profile, enable Cupertino Keys, and select it.
@@ -82,6 +86,13 @@ separate. If the work app cannot use Cupertino Keys, check the organization's
 keyboard allowlist. If HyperOS actually uses separate IME instances, record the OS
 build and profile type before implementing a supported local bridge; this build
 does not claim to synchronize independent Android users or Xiaomi Second space.
+
+For Android 16 regression checks use `tools/test-device.py --phase geometry` and
+`--phase navigation` with the same `--serial` / `--adb` options. These verify reported
+IME insets and dispatch touches through our own decor view to the bottom buttons;
+they do not bypass the OS input-injection restriction. `--phase work_setup` adds
+`cupertinotestword` / `ctw` in the personal IME for a manual work-profile check;
+`--phase work_cleanup` removes that disposable entry afterward.
 
 ## Acceptance checks
 

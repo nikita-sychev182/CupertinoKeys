@@ -25,6 +25,11 @@ class KeyboardTestActivity : Activity() {
             orientation = LinearLayout.VERTICAL
             val padding = (12 * resources.displayMetrics.density).toInt()
             setPadding(padding, padding, padding, padding)
+            if (android.os.Build.VERSION.SDK_INT >= 30) setOnApplyWindowInsetsListener { view, insets ->
+                val bars = insets.getInsets(android.view.WindowInsets.Type.systemBars())
+                view.setPadding(padding + bars.left, padding + bars.top, padding + bars.right, padding)
+                insets
+            }
         }
         root.addView(TextView(this).apply {
             text = "Cupertino Keys · device test"

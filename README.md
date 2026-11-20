@@ -8,17 +8,25 @@ Original licenses and attribution are retained below and in the license files.
 
 The current prototype adds iOS 26-inspired light/dark materials, rounded keycaps,
 Inter typography, a wider spacebar, a simpler bottom row, RU/EN setup, and horizontal
-spacebar swipes to switch languages. Inter is bundled under the SIL Open Font License;
+spacebar swipes to switch languages. A comma key is available beside the spacebar in RU/EN.
+Inter is bundled under the SIL Open Font License;
 original vector icons are used instead of Apple assets.
 It is **not a pixel-identical iOS keyboard**: the bottom accessory area, animations,
 and touch feel still need refinement. Light EN and dark RU previews were inspected on
 Mi 8; see [visual verification](docs/testing/cupertino-visuals.md).
 
-Android 12+ uses the public cross-window blur API when the device enables it; the
-window background outline limits the requested blur to the keyboard area. Floating
-mode, older Android, and disabled system blur use a locally drawn frosted surface.
-The native blur path still needs physical verification on Xiaomi 14. It does not
-capture or store screenshots of the application behind the keyboard.
+The keyboard uses a locally drawn frosted surface. Xiaomi 14 testing exposed that
+Android's native window blur covers the full IME window, including the application
+above the keys; a background outline does not restrict that region. Native blur is
+therefore allowed only if the keyboard occupies the entire window, which the normal
+full-height IME popup layout does not. No application screenshots are captured or stored.
+
+On Android 16 with gesture navigation, the Cupertino theme replaces the system IME
+caption bar with a bottom-left language globe and bottom-right hide button. The globe
+cycles enabled languages; long-press opens Android's keyboard picker. The system
+gesture bar stays visible. Older versions, floating/fullscreen modes, and devices that
+do not allow caption-bar replacement retain the system panel. See the
+[Xiaomi 14 regression checks](docs/testing/xiaomi14-2026-11-21.md).
 
 Privacy changes:
 - No internet permission, shared Android dictionary permissions, or contacts access.
@@ -51,8 +59,9 @@ python tools/check_privacy.py --merged
 
 The `Cupertino Keys` GitHub Actions workflow is configured to run these checks and upload a development APK.
 Tests cover dictionary persistence, locale separation, duplicate handling, private URIs,
-first-run language defaults, and changes to no-learning flags on API 29 and 36.
-All 18 cases passed locally on JDK 21. Source checks alone do not establish runtime behavior.
+first-run language defaults, changes to no-learning flags on API 29 and 36, and Android 16
+window geometry/blur boundaries. All 23 cases passed locally on JDK 21.
+Source checks alone do not establish runtime behavior.
 
 On Windows, paths containing spaces or `!` require special handling for the upstream
 NDK scripts. `tools/build-local.ps1 -Task Build` (or `-Task Test`) uses a checked `K:`

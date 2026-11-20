@@ -2,6 +2,10 @@
 
 Verified on Mi 8 / Android 10 / MIUI V12.0.3.0.QEAMIXM.
 
+Historical report: the later [Xiaomi 14 checks](xiaomi14-2026-11-21.md) found and fixed
+two defects in the previously untested native blur branch. The normal IME now uses
+the frosted fallback, and Android 16 has a custom bottom navigation panel.
+
 Final local APK SHA-256:
 `521cff9f7c12dab4c87eb87e9c4c68759c2a27b31aa82cfcec2074555e84fe44`.
 

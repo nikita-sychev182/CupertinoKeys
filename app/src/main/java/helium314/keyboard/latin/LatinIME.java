@@ -710,6 +710,7 @@ public class LatinIME extends InputMethodService implements
     @Override
     public void onDestroy() {
         helium314.keyboard.keyboard.CupertinoWindowBlur.detach();
+        helium314.keyboard.keyboard.CupertinoNavigationBar.detach();
         mClipboardHistoryManager.onDestroy();
         mDictionaryFacilitator.closeDictionaries();
         mSettings.onDestroy();
@@ -781,6 +782,7 @@ public class LatinIME extends InputMethodService implements
         KtxKt.updateSoftInputWindowLayoutParameters(this, mInputView);
         updateSuggestionStripView(view);
         helium314.keyboard.keyboard.CupertinoWindowBlur.attach(getWindow().getWindow(), view);
+        helium314.keyboard.keyboard.CupertinoNavigationBar.attach(this, view);
     }
 
     public void updateSuggestionStripView(View view) {
@@ -1026,12 +1028,19 @@ public class LatinIME extends InputMethodService implements
     @Override
     public void onWindowShown() {
         super.onWindowShown();
+        helium314.keyboard.keyboard.CupertinoNavigationBar.refresh();
         if (isInputViewShown()) {
             if (mInputView != null && Settings.getValues().mIsFloatingKeyboard)
                 FloatingKeyboardUtils.setFloating(mInputView);
             setNavigationBarColor();
             workaroundForHuaweiStatusBarIssue();
         }
+    }
+
+    @Override
+    public void onCustomImeSwitcherButtonRequestedVisible(boolean visible) {
+        // The custom globe retains the platform IME picker on long press.
+        helium314.keyboard.keyboard.CupertinoNavigationBar.refresh();
     }
 
     @Override
@@ -1222,7 +1231,8 @@ public class LatinIME extends InputMethodService implements
             return;
         }
         final int stripHeight = mKeyboardSwitcher.isShowingStripContainer() ? mKeyboardSwitcher.getStripContainer().getHeight() : 0;
-        int visibleTopY = inputHeight - visibleKeyboardView.getHeight() - stripHeight;
+        int visibleTopY = inputHeight - visibleKeyboardView.getHeight() - stripHeight
+                - helium314.keyboard.keyboard.CupertinoNavigationBar.height(mInputView);
         if (Settings.getValues().mIsFloatingKeyboard)
             visibleTopY = getResources().getDisplayMetrics().heightPixels;
 

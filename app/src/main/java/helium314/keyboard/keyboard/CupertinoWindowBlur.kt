@@ -2,7 +2,7 @@
 package helium314.keyboard.keyboard
 
 import android.graphics.drawable.GradientDrawable
-import android.graphics.drawable.InsetDrawable
+import android.graphics.Rect
 import android.os.Build
 import android.view.View
 import android.view.Window
@@ -15,6 +15,12 @@ import java.util.function.Consumer
 /** Public cross-window blur API only. Never captures, stores or reads app pixels. */
 object CupertinoWindowBlur {
     private var active: AutoCloseable? = null
+
+    // Android's DecorView uses the background outline's radius, but applies blur across
+    // the whole window. The IME input window extends above the visible keyboard for popups.
+    // In that configuration, use the opaque material instead of blurring the caller's app.
+    internal fun canBlurWindow(keyboard: Rect, width: Int, height: Int): Boolean =
+        width > 0 && height > 0 && keyboard == Rect(0, 0, width, height)
 
     @JvmStatic fun attach(window: Window?, input: View) {
         detach()
@@ -56,9 +62,12 @@ object CupertinoWindowBlur {
             val colors = settings.mColors as? CupertinoColors
             val frame = input.findViewById<View>(R.id.main_keyboard_frame) ?: return
             val decor = window.decorView
+            val location = IntArray(2)
+            frame.getLocationInWindow(location)
             val enabled = colors != null && !settings.mIsFloatingKeyboard &&
                 runCatching { manager.isCrossWindowBlurEnabled }.getOrDefault(false) &&
-                frame.width > 0 && frame.height > 0 && decor.width > 0
+                canBlurWindow(Rect(location[0], location[1], location[0] + frame.width,
+                    location[1] + frame.height), decor.width, decor.height)
             if (!enabled) {
                 if (appliedSpec == "opaque:${colors?.dark}") return
                 appliedSpec = "opaque:${colors?.dark}"
@@ -67,8 +76,6 @@ object CupertinoWindowBlur {
                 colors?.setSurface(frame, false)
                 return
             }
-            val location = IntArray(2)
-            frame.getLocationInWindow(location)
             val left = location[0].coerceIn(0, decor.width)
             val top = location[1].coerceIn(0, decor.height)
             val right = (decor.width - left - frame.width).coerceAtLeast(0)
@@ -82,8 +89,8 @@ object CupertinoWindowBlur {
                 setColor(if (colors.dark) 0x5030333C else 0x50E7EAF0)
                 cornerRadii = floatArrayOf(radius, radius, radius, radius, 0f, 0f, 0f, 0f)
             }
-            // Window background outline limits blur to the keyboard, not the app above it.
-            window.setBackgroundDrawable(InsetDrawable(backdrop, left, top, right, bottom))
+            // Only reached when the entire window is occupied by the keyboard.
+            window.setBackgroundDrawable(CupertinoBlurBackground(backdrop, left, top, right, bottom))
             window.setBackgroundBlurRadius((28f * density).toInt())
             colors.setSurface(frame, true)
         }

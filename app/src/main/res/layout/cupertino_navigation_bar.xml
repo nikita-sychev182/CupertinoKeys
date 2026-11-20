@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: GPL-3.0-only -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="48dp"
+    android:layoutDirection="ltr" android:visibility="gone">
+    <ImageButton android:id="@+id/cupertino_language"
+        android:layout_width="48dp" android:layout_height="48dp"
+        android:layout_gravity="left|center_vertical" android:layout_marginLeft="16dp"
+        android:padding="10dp" android:background="?android:attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/cupertino_globe" android:contentDescription="@string/switch_language" />
+    <ImageButton android:id="@+id/cupertino_hide"
+        android:layout_width="48dp" android:layout_height="48dp"
+        android:layout_gravity="right|center_vertical" android:layout_marginRight="16dp"
+        android:padding="10dp" android:background="?android:attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/cupertino_hide" android:contentDescription="@string/space_swipe_hide_keyboard_entry" />
+</FrameLayout>

@@ -17,7 +17,11 @@ parser.add_argument("--serial", required=True)
 parser.add_argument("--adb", default="adb")
 parser.add_argument("--output", type=Path, default=Path(".tools/test-results"))
 parser.add_argument("--screenshots", action="store_true", help="Capture light EN and dark RU previews in our disposable screen")
+parser.add_argument("--phase", choices=("geometry", "navigation", "work_setup", "work_cleanup"),
+                    help="Run a targeted check; work_setup deliberately retains one disposable dictionary word")
 args = parser.parse_args()
+if args.screenshots and args.phase:
+    parser.error("Use either --screenshots or --phase")
 adb = [args.adb, "-s", args.serial]
 package = "dev.cupertinokeys.keyboard.debug"
 activity = f"{package}/helium314.keyboard.latin.KeyboardTestActivity"
@@ -27,7 +31,7 @@ current = subprocess.check_output(adb + ["shell", "settings", "get", "secure", "
 if not current.startswith(package + "/"):
     raise SystemExit("Select Cupertino Keys manually as the current keyboard first.")
 
-for phase in (("preview_light", "preview_dark") if args.screenshots else ("input", "persistence")):
+for phase in ((args.phase,) if args.phase else (("preview_light", "preview_dark") if args.screenshots else ("input", "persistence"))):
     process = subprocess.Popen(adb + ["shell", "am", "instrument", "-w", "-r", "-e", "phase", phase, runner],
                                stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding="utf-8")
     lines = []
@@ -74,5 +78,5 @@ for phase in (("preview_light", "preview_dark") if args.screenshots else ("input
         raise SystemExit(f"Device phase {phase} failed; see saved output.")
 
 subprocess.run(adb + ["shell", "am", "start", "-W", "-n", activity], check=True, stdout=subprocess.DEVNULL, timeout=20)
-print("Previews captured; system theme restored." if args.screenshots else
+print(f"Phase {args.phase} passed." if args.phase else "Previews captured; system theme restored." if args.screenshots else
       "Device checks passed. Test word removed; Cupertino Keys remains selected.")
