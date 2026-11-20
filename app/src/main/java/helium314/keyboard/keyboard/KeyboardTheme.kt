@@ -19,6 +19,7 @@ import helium314.keyboard.latin.common.AllColors
 import helium314.keyboard.latin.common.ColorType
 import helium314.keyboard.latin.common.Colors
 import helium314.keyboard.latin.common.DefaultColors
+import helium314.keyboard.latin.common.CupertinoColors
 import helium314.keyboard.latin.common.DynamicColors
 import helium314.keyboard.latin.settings.Defaults
 import helium314.keyboard.latin.settings.Settings
@@ -151,20 +152,20 @@ private constructor(val themeId: Int, @JvmField val mStyleId: Int) {
             val hasBorders = prefs.getBoolean(Settings.PREF_THEME_KEY_BORDERS, Defaults.PREF_THEME_KEY_BORDERS)
             val backgroundImage = Settings.readUserBackgroundImage(context, isNight)
             return when (themeName) {
-                THEME_CUPERTINO_LIGHT -> DefaultColors(
+                THEME_CUPERTINO_LIGHT -> CupertinoColors(DefaultColors(
                     themeStyle, hasBorders,
                     "#007AFF".toColorInt(), "#D1D3D9".toColorInt(),
-                    Color.WHITE, "#ADB3BE".toColorInt(), Color.WHITE,
+                    "#F9FAFC".toColorInt(), "#C0C6D0".toColorInt(), "#F5F7FA".toColorInt(),
                     Color.BLACK, "#50545C".toColorInt(),
                     keyboardBackground = backgroundImage
-                )
-                THEME_CUPERTINO_DARK -> DefaultColors(
+                ), false, context.resources.displayMetrics.density)
+                THEME_CUPERTINO_DARK -> CupertinoColors(DefaultColors(
                     themeStyle, hasBorders,
                     "#0A84FF".toColorInt(), "#1C1C1E".toColorInt(),
-                    "#636366".toColorInt(), "#3A3A3C".toColorInt(), "#636366".toColorInt(),
+                    "#555861".toColorInt(), "#3E424C".toColorInt(), "#555861".toColorInt(),
                     Color.WHITE, "#EBEBF5".toColorInt(),
                     keyboardBackground = backgroundImage
-                )
+                ), true, context.resources.displayMetrics.density)
                 THEME_DYNAMIC -> {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) DynamicColors(context, themeStyle, hasBorders, backgroundImage)
                     else getThemeColors(THEME_LIGHT, themeStyle, context, prefs, isNight)

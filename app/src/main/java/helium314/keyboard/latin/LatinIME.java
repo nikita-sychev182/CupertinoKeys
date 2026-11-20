@@ -547,6 +547,7 @@ public class LatinIME extends InputMethodService implements
 
     @Override
     public void onCreate() {
+        setTheme(R.style.CupertinoImeWindow);
         mSettings.startListener();
         KeyboardIconsSet.Companion.getInstance().loadIcons(this);
         mRichImm = RichInputMethodManager.getInstance();
@@ -556,6 +557,9 @@ public class LatinIME extends InputMethodService implements
         mDisplayContext = KtxKt.getDisplayContext(this);
         KeyboardSwitcher.init(this);
         super.onCreate();
+
+        if (Build.VERSION.SDK_INT >= 29 && getWindow().getWindow() != null)
+            getWindow().getWindow().getDecorView().setForceDarkAllowed(false);
 
         loadSettings();
         mClipboardHistoryManager.onCreate();
@@ -705,6 +709,7 @@ public class LatinIME extends InputMethodService implements
 
     @Override
     public void onDestroy() {
+        helium314.keyboard.keyboard.CupertinoWindowBlur.detach();
         mClipboardHistoryManager.onDestroy();
         mDictionaryFacilitator.closeDictionaries();
         mSettings.onDestroy();
@@ -775,6 +780,7 @@ public class LatinIME extends InputMethodService implements
         mInsetsUpdater = ViewOutlineProviderUtilsKt.setInsetsOutlineProvider(view);
         KtxKt.updateSoftInputWindowLayoutParameters(this, mInputView);
         updateSuggestionStripView(view);
+        helium314.keyboard.keyboard.CupertinoWindowBlur.attach(getWindow().getWindow(), view);
     }
 
     public void updateSuggestionStripView(View view) {

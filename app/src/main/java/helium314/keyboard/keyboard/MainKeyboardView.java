@@ -811,7 +811,8 @@ public final class MainKeyboardView extends KeyboardView implements DrawingProxy
         final int width = key.getWidth();
         final int height = key.getHeight();
         paint.setTextAlign(Align.CENTER);
-        paint.setTextSize(mLanguageOnSpacebarTextSize);
+        paint.setTextSize(mLanguageOnSpacebarTextSize *
+                (Settings.getValues().mColors instanceof helium314.keyboard.latin.common.CupertinoColors ? 0.80f : 1f));
         final String customText = Settings.getValues().mSpaceBarText;
         final String spaceText;
         if (!customText.isEmpty()) {

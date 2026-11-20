@@ -28,7 +28,14 @@ class KeyboardIconsSet private constructor() {
             else -> keyboardIconsMaterial
         }
         val overrideIds = customIconIds(context, prefs)
-        val ids = if (overrideIds.isEmpty()) defaultIds else defaultIds + overrideIds
+        val cupertinoIds = if (KeyboardTheme.getColorsForCurrentTheme(context) is helium314.keyboard.latin.common.CupertinoColors) mapOf(
+            NAME_SHIFT_KEY to R.drawable.cupertino_shift,
+            NAME_SHIFT_KEY_SHIFTED to R.drawable.cupertino_shifted,
+            NAME_DELETE_KEY to R.drawable.cupertino_delete,
+            NAME_ENTER_KEY to R.drawable.cupertino_return,
+            ToolbarKey.EMOJI.name.lowercase(Locale.US) to R.drawable.cupertino_emoji,
+        ) else emptyMap()
+        val ids = defaultIds + cupertinoIds + overrideIds
         if (!needsReload && ids == iconIds) return
         iconIds = ids
         iconsByName.clear()

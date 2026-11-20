@@ -51,6 +51,12 @@ Results go to ignored `.tools/test-results/device-*.txt`. The test Activity and 
 are absent from release builds. A system-level input-injection test remains manual
 when MIUI blocks shell input commands.
 
+Use `--screenshots` to capture light English and dark Russian previews in the same
+disposable screen. This only overrides the keyboard theme in the test process and
+restores automatic theme selection afterward. Screenshots and color diagnostics are
+saved under `.tools/test-results/`. Check the rendered text contrast visually: MIUI
+can recolor Canvas text even when the application passes the correct Paint color.
+
 ## Acceptance checks
 
 - Fresh install starts with Russian and English available; switching language does not require network access.

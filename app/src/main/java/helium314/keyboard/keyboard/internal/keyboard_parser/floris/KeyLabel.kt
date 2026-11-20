@@ -94,7 +94,8 @@ object KeyLabel {
     fun keyLabelToActualLabel(label: String, params: KeyboardParams): String {
         val newLabel = when (label) {
             SYMBOL_ALPHA -> if (params.mId.element.isAlphabet) {
-                params.mLocaleKeyboardInfos.labelSymbol
+                if (Settings.getValues().mColors is helium314.keyboard.latin.common.CupertinoColors) "123"
+                else params.mLocaleKeyboardInfos.labelSymbol
             } else {
                 params.mLocaleKeyboardInfos.labelAlphabet
             }

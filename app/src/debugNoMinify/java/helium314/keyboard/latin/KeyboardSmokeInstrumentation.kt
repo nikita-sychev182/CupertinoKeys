@@ -15,6 +15,7 @@ import helium314.keyboard.keyboard.KeyboardSwitcher
 import helium314.keyboard.keyboard.internal.keyboard_parser.floris.KeyCode
 import helium314.keyboard.latin.dictionary.LocalUserDictionary.Words
 import helium314.keyboard.latin.settings.Settings
+import helium314.keyboard.settings.SettingsActivity
 import java.util.concurrent.atomic.AtomicReference
 
 /** Exercises the real IME view and InputConnection, without shell input injection.
@@ -84,14 +85,33 @@ class KeyboardSmokeInstrumentation : Instrumentation() {
     override fun onStart() {
         val output = Bundle()
         try {
+            if (phase.startsWith("preview_")) SettingsActivity.forceNight = phase == "preview_dark"
             activity = startActivitySync(Intent(targetContext, KeyboardTestActivity::class.java)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            if (phase.startsWith("preview_")) main { KeyboardSwitcher.getInstance().setThemeNeedsReload() }
             button("Text")
             repeat(30) {
                 if (!main { KeyboardSwitcher.getInstance().mainKeyboardView?.isShown == true }) SystemClock.sleep(200)
             }
             check("IME is visible", main { keyboard().isShown })
-            if (phase == "persistence") {
+            if (phase.startsWith("preview_")) {
+                val russian = phase == "preview_dark"
+                if (language() != if (russian) "ru" else "en") touch(32, 250f)
+                (if (russian) "привет" else "hello").forEach { touch(it.code) }
+                val diagnostics = main {
+                    val view = keyboard()
+                    val key = requireNotNull(view.keyboard).getKey(if (russian) 'п'.code else 'h'.code)!!
+                    val params = helium314.keyboard.keyboard.KeyboardView::class.java.getDeclaredField("mKeyDrawParams")
+                        .apply { isAccessible = true }.get(view) as helium314.keyboard.keyboard.internal.KeyDrawParams
+                    "palette=${Settings.getValues().mColors.get(helium314.keyboard.latin.common.ColorType.KEY_TEXT)} " +
+                        "key=${key.visualAttributes?.mTextColor} view=${view.keyVisualAttribute?.mTextColor} " +
+                        "params=${params.mTextColor} selected=${key.selectTextColor(params)}"
+                }
+                sendStatus(1, Bundle().apply { putString("stream", "COLOR_CHECK: $diagnostics\n") })
+                sendStatus(1, Bundle().apply { putString("stream", "PREVIEW_READY\n") })
+                SystemClock.sleep(12000)
+                SettingsActivity.forceNight = null
+            } else if (phase == "persistence") {
                 check("personal word survives process restart", dictionaryCount() == 1)
                 button("Delete test word")
                 check("personal word deleted", dictionaryCount() == 0)
@@ -141,6 +161,7 @@ class KeyboardSmokeInstrumentation : Instrumentation() {
             output.putString("stream", checks.joinToString("\n", "\n", "\n"))
             finish(Activity.RESULT_OK, output)
         } catch (error: Throwable) {
+            SettingsActivity.forceNight = null
             output.putString("stream", checks.joinToString("\n") + "\n" + error.stackTraceToString())
             finish(Activity.RESULT_CANCELED, output)
         }

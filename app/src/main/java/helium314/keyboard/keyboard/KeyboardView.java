@@ -106,6 +106,9 @@ public class KeyboardView extends View {
     public KeyboardView(final Context context, final AttributeSet attrs, final int defStyle) {
         super(context, attrs, defStyle);
         mColors = Settings.getValues().mColors;
+        if (android.os.Build.VERSION.SDK_INT >= 29
+                && mColors instanceof helium314.keyboard.latin.common.CupertinoColors)
+            setForceDarkAllowed(false);
 
         final TypedArray keyboardViewAttr = context.obtainStyledAttributes(attrs,
                 R.styleable.KeyboardView, defStyle, R.style.KeyboardView);

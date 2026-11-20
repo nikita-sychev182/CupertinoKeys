@@ -35,6 +35,9 @@ public final class InputView extends FrameLayout {
 
     public InputView(final Context context, final AttributeSet attrs) {
         super(context, attrs, 0);
+        if (android.os.Build.VERSION.SDK_INT >= 29
+                && Settings.getValues().mColors instanceof helium314.keyboard.latin.common.CupertinoColors)
+            setForceDarkAllowed(false);
     }
 
     @Override

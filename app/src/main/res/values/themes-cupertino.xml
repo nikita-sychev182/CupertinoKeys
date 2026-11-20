@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: GPL-3.0-only -->
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- The IME owns light/dark palettes. Disable Force Dark on the actual window
+         theme as well as its views: MIUI otherwise rewrites Canvas text colors. -->
+    <style name="CupertinoImeWindow" parent="android:style/Theme.InputMethod">
+        <item name="android:forceDarkAllowed" tools:targetApi="q">false</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+    </style>
+</resources>

@@ -8,9 +8,25 @@ import android.widget.TextView
 import androidx.compose.ui.text.font.FontFamily
 import helium314.keyboard.latin.common.isEmoji
 import helium314.keyboard.latin.settings.Settings
+import helium314.keyboard.latin.common.CupertinoColors
 
 object KeyboardTypeface {
     private val lock = Any()
+    private var cupertinoTypeface: Typeface? = null
+
+    private fun bundledTypeface(): Typeface? {
+        val context = Settings.getCurrentContext() ?: return null
+        if (Settings.getValues()?.mColors !is CupertinoColors) return null
+        synchronized(lock) {
+            if (cupertinoTypeface == null) cupertinoTypeface = runCatching {
+                if (android.os.Build.VERSION.SDK_INT >= 26)
+                    Typeface.Builder(context.assets, "fonts/Inter.ttf")
+                        .setFontVariationSettings("'opsz' 28, 'wght' 400").build()
+                else Typeface.createFromAsset(context.assets, "fonts/Inter.ttf")
+            }.getOrNull()
+            return cupertinoTypeface
+        }
+    }
 
     private var cachedCustomTypeface: Typeface? = null
     private var cachedCustomFontFamily: FontFamily? = null
@@ -75,7 +91,7 @@ object KeyboardTypeface {
         return if (emojiTypeface != null && text != null && isEmoji(text)) {
             emojiTypeface
         } else {
-            customTypeface() ?: defaultTypeface
+            customTypeface() ?: bundledTypeface() ?: defaultTypeface
         }
     }
 

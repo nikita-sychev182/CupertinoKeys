@@ -105,8 +105,11 @@ class KeyboardTestActivity : Activity() {
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
         if (hasFocus) (currentFocus as? EditText)?.let {
-            (getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager)
-                .showSoftInput(it, InputMethodManager.SHOW_IMPLICIT)
+            it.postDelayed({
+                val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+                imm.restartInput(it)
+                imm.showSoftInput(it, InputMethodManager.SHOW_IMPLICIT)
+            }, 350)
         }
     }
 }

@@ -6,10 +6,19 @@ The working branch is `cupertino`; `upstream` points at the original repository.
 This is an independent project, not an Apple or HeliBoard release. Changes in this fork are AI-assisted.
 Original licenses and attribution are retained below and in the license files.
 
-The first milestone adds an iOS-inspired light/dark palette, bordered keys, a clean
-suggestion strip, RU/EN setup, and horizontal spacebar swipes to switch languages.
-It is **not yet a visually verified, pixel-identical iOS keyboard**: layout,
-animations and touch feel still need device testing and refinement.
+The current prototype adds iOS 26-inspired light/dark materials, rounded keycaps,
+Inter typography, a wider spacebar, a simpler bottom row, RU/EN setup, and horizontal
+spacebar swipes to switch languages. Inter is bundled under the SIL Open Font License;
+original vector icons are used instead of Apple assets.
+It is **not a pixel-identical iOS keyboard**: the bottom accessory area, animations,
+and touch feel still need refinement. Light EN and dark RU previews were inspected on
+Mi 8; see [visual verification](docs/testing/cupertino-visuals.md).
+
+Android 12+ uses the public cross-window blur API when the device enables it; the
+window background outline limits the requested blur to the keyboard area. Floating
+mode, older Android, and disabled system blur use a locally drawn frosted surface.
+The native blur path still needs physical verification on Xiaomi 14. It does not
+capture or store screenshots of the application behind the keyboard.
 
 Privacy changes:
 - No internet permission, shared Android dictionary permissions, or contacts access.
