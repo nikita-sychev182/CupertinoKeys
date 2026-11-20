@@ -161,8 +161,8 @@ private constructor(val themeId: Int, @JvmField val mStyleId: Int) {
                 ), false, context.resources.displayMetrics.density)
                 THEME_CUPERTINO_DARK -> CupertinoColors(DefaultColors(
                     themeStyle, hasBorders,
-                    "#706D79".toColorInt(), "#19191B".toColorInt(),
-                    "#454547".toColorInt(), "#333335".toColorInt(), "#454547".toColorInt(),
+                    "#8C829F".toColorInt(), "#25262B".toColorInt(),
+                    "#56565D".toColorInt(), "#44464E".toColorInt(), "#56565D".toColorInt(),
                     Color.WHITE, "#EBEBF5".toColorInt(),
                     keyboardBackground = backgroundImage
                 ), true, context.resources.displayMetrics.density)

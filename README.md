@@ -20,6 +20,8 @@ Android's native window blur covers the full IME window, including the applicati
 above the keys; a background outline does not restrict that region. Native blur is
 therefore allowed only if the keyboard occupies the entire window, which the normal
 full-height IME popup layout does not. No application screenshots are captured or stored.
+Keycaps use flat, slightly translucent fills over this surface, without individual
+shadows or bevels. See the latest [material comparison](docs/testing/flat-material-2026-11-21.md).
 
 On Android 16 with gesture navigation, the Cupertino theme replaces the system IME
 caption bar with a bottom-left language globe and bottom-right Google voice button.
