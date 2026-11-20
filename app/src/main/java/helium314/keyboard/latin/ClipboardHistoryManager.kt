@@ -67,15 +67,15 @@ class ClipboardHistoryManager(
         }
     }
 
-    // todo for later
-    //  setting whether to store sensitive clip data?
-    //  care about other clip items than first?
     private fun fetchPrimaryClip() {
         if (tempPrimaryClip) return // avoid updating history
+        if (latinIME.mSettings.current.mIncognitoModeEnabled) return
         val clipData = clipboardManager.primaryClip ?: return
         if (clipData.itemCount == 0) return
         val clipItem = clipData.getItemAt(0) ?: return
         val description = clipData.description ?: return
+        // Stable platform extra, also used by applications on pre-API 33 devices.
+        if (description.extras?.getBoolean("android.content.extra.IS_SENSITIVE", false) == true) return
         val timeStamp = ClipboardManagerCompat.getClipTimestamp(clipData)
 
         if (description.hasMimeType("text/*")) {

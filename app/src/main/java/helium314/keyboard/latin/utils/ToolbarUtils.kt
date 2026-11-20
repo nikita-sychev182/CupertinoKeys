@@ -138,7 +138,7 @@ val defaultToolbarPref by lazy {
 }
 
 val defaultPinnedToolbarPref = entries.filterNot { it == CLOSE_HISTORY }.joinToString(Separators.ENTRY) {
-    it.name + Separators.KV + false
+    it.name + Separators.KV + (it == CLIPBOARD)
 }
 
 val defaultClipboardToolbarPref by lazy {

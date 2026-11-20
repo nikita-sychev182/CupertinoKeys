@@ -17,7 +17,7 @@ parser.add_argument("--serial", required=True)
 parser.add_argument("--adb", default="adb")
 parser.add_argument("--output", type=Path, default=Path(".tools/test-results"))
 parser.add_argument("--screenshots", action="store_true", help="Capture light EN and dark RU previews in our disposable screen")
-parser.add_argument("--phase", choices=("geometry", "navigation", "voice", "emoji_light", "emoji_dark", "work_setup", "work_cleanup"),
+parser.add_argument("--phase", choices=("geometry", "navigation", "voice", "clipboard", "emoji_light", "emoji_dark", "work_setup", "work_cleanup"),
                     help="Run a targeted check; work_setup deliberately retains one disposable dictionary word")
 args = parser.parse_args()
 if args.screenshots and args.phase:

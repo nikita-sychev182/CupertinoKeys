@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="cupertino_clipboard_summary">Хранить скопированный текст локально: 5 записей и больше. По умолчанию — 1 час. Кнопка буфера находится рядом с подсказками; удержание вставляет последнюю копию. Помеченные как конфиденциальные записи не сохраняются.</string>
     <string name="cupertino_voice_description">Голосовой ввод Google. Удерживайте, чтобы скрыть клавиатуру.</string>
     <string name="cupertino_enable_google_voice">Включите «Голосовой ввод Google» в настройках клавиатур Android.</string>
     <string name="cupertino_voice_not_permitted">Голосовой ввод не разрешён в этом профиле.</string>

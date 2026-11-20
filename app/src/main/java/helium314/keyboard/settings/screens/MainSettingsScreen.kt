@@ -24,6 +24,9 @@ import helium314.keyboard.latin.utils.NextScreenIcon
 import helium314.keyboard.settings.SearchSettingsScreen
 import helium314.keyboard.latin.utils.Theme
 import helium314.keyboard.settings.initPreview
+import helium314.keyboard.settings.SettingsActivity
+import helium314.keyboard.latin.settings.Settings
+import helium314.keyboard.latin.AudioAndHapticFeedbackManager
 import helium314.keyboard.settings.preferences.Preference
 import helium314.keyboard.latin.utils.previewDark
 import helium314.keyboard.settings.screens.gesturedata.END_DATE_EPOCH_MILLIS
@@ -54,6 +57,11 @@ fun MainSettingsScreen(
             Column(
                 Modifier.verticalScroll(rememberScrollState()).then(Modifier.padding(innerPadding))
             ) {
+                // Keep the most commonly requested controls on the first screen.
+                SettingsActivity.settingsContainer[Settings.PREF_SOUND_ON]?.Preference()
+                if (AudioAndHapticFeedbackManager.getInstance().hasVibrator())
+                    SettingsActivity.settingsContainer[Settings.PREF_VIBRATE_ON]?.Preference()
+                SettingsActivity.settingsContainer[Settings.PREF_ENABLE_CLIPBOARD_HISTORY]?.Preference()
                 Preference(
                     name = stringResource(R.string.language_and_layouts_title),
                     description = enabledSubtypes.joinToString(", ") { it.displayName() },

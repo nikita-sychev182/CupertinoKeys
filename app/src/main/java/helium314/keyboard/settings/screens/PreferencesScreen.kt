@@ -169,7 +169,7 @@ fun createPreferencesSettings(context: Context) = listOf(
         SwitchPreference(it, Defaults.PREF_REMOVE_REDUNDANT_POPUPS) { KeyboardSwitcher.getInstance().setThemeNeedsReload() }
     },
     Setting(context, Settings.PREF_ENABLE_CLIPBOARD_HISTORY,
-        R.string.enable_clipboard_history, R.string.enable_clipboard_history_summary)
+        R.string.enable_clipboard_history, R.string.cupertino_clipboard_summary)
     {
         val ctx = LocalContext.current
         SwitchPreference(it, Defaults.PREF_ENABLE_CLIPBOARD_HISTORY) { ClipboardDao.getInstance(ctx)?.clearNonPinned() }

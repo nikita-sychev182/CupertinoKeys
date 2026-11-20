@@ -45,6 +45,14 @@ Privacy changes:
 - Clipboard history is off by default. Password/no-learning field handling is inherited from HeliBoard.
 - No existing system dictionary is imported automatically. Uninstalling erases app-private learned data.
 
+Sound, vibration, and clipboard-history switches are available directly on the main
+settings screen. History is opt-in; it supports multiple text entries (five-entry
+copy/paste verified on Xiaomi 14), with a default retention of one hour. Hold an entry
+to pin it. The pinned clipboard button beside suggestions opens history; hold the
+button to paste the current system clip. File collection defaults to off. History
+does not collect in password/no-learning/incognito fields or save clips explicitly
+marked sensitive. Existing customized toolbar and retention settings are preserved.
+
 The keyboard necessarily sends committed text to the application being typed into.
 Manual export features inherited from HeliBoard are user-initiated; the keyboard
 does not upload its dictionary. Rooted-device tools and vendor migration utilities

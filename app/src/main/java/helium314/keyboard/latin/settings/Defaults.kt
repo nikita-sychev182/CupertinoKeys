@@ -161,9 +161,9 @@ object Defaults {
     const val PREF_TOUCHPAD_SENSITIVITY = 50
     const val PREF_TOUCHPAD_EDGE_SCROLL = true
     const val PREF_ENABLE_CLIPBOARD_HISTORY = false
-    const val PREF_CLIPBOARD_HISTORY_RETENTION_TIME = 10 // minutes
+    const val PREF_CLIPBOARD_HISTORY_RETENTION_TIME = 60 // minutes; multiple text entries, not just the latest
     const val PREF_CLIPBOARD_HISTORY_PINNED_FIRST = true
-    const val PREF_CLIPBOARD_USE_FILES = true
+    const val PREF_CLIPBOARD_USE_FILES = false
     const val PREF_CLIPBOARD_FILES_SIZE_LIMIT = 20 // megabytes
     const val PREF_ADD_TO_PERSONAL_DICTIONARY = false
     @JvmField

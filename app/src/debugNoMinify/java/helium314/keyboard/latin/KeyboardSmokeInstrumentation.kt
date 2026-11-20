@@ -15,6 +15,7 @@ import helium314.keyboard.keyboard.KeyboardSwitcher
 import helium314.keyboard.keyboard.internal.keyboard_parser.floris.KeyCode
 import helium314.keyboard.latin.dictionary.LocalUserDictionary.Words
 import helium314.keyboard.latin.settings.Settings
+import helium314.keyboard.latin.utils.prefs
 import helium314.keyboard.settings.SettingsActivity
 import java.util.concurrent.atomic.AtomicReference
 
@@ -107,6 +108,94 @@ class KeyboardSmokeInstrumentation : Instrumentation() {
         SystemClock.sleep(150)
     }
 
+    private fun clipboardChecks() {
+        val prefs = targetContext.prefs()
+        val keys = listOf(Settings.PREF_ENABLE_CLIPBOARD_HISTORY, Settings.PREF_SOUND_ON, Settings.PREF_VIBRATE_ON)
+        val previous = keys.associateWith { if (prefs.contains(it)) prefs.getBoolean(it, false) else null }
+        val cm = targetContext.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+        val oldClip = main { cm.primaryClip }
+        check("existing system clipboard can be restored safely", oldClip == null ||
+            (0 until oldClip.itemCount).all { oldClip.getItemAt(it).uri == null && oldClip.getItemAt(it).intent == null })
+        val prefix = "cupertino-smoke-${System.currentTimeMillis()}-"
+        val dao = requireNotNull(helium314.keyboard.latin.database.ClipboardDao.getInstance(targetContext))
+        main {
+            // Recover only disposable entries from an interrupted earlier run.
+            dao.getAll().indices.reversed().filter { dao.getAt(it).text?.startsWith("cupertino-smoke-") == true }
+                .forEach { dao.deleteClipAt(it) }
+        }
+        fun copy(suffix: String, sensitive: Boolean = false) {
+            main {
+                val clip = android.content.ClipData.newPlainText("Cupertino test", prefix + suffix)
+                if (sensitive) clip.description.extras = android.os.PersistableBundle().apply {
+                    putBoolean("android.content.extra.IS_SENSITIVE", true)
+                }
+                cm.setPrimaryClip(clip)
+            }
+            SystemClock.sleep(250)
+            waitForIdleSync()
+        }
+        fun saved(suffix: String) = main { dao.getAll().any { it.text == prefix + suffix } }
+        try {
+            main { prefs.edit().apply { keys.forEach { putBoolean(it, true) } }.commit() }
+            button("Text")
+            check("sound and vibration can be enabled", main { Settings.getValues().mSoundOn && Settings.getValues().mVibrateOn })
+            for (i in 1..5) copy(i.toString())
+            check("five copied texts retained", (1..5).all { saved(it.toString()) })
+            copy("sensitive", true)
+            check("sensitive copy not stored", !saved("sensitive"))
+            button("Password")
+            copy("password")
+            check("password field does not collect history", !saved("password"))
+            button("No learning")
+            copy("private")
+            check("no-learning field does not collect history", !saved("private"))
+            button("Text")
+            main {
+                val pinned = keyboard().rootView.findViewById<ViewGroup>(R.id.pinned_keys)
+                val clipButton = pinned.findViewWithTag<View>(helium314.keyboard.latin.utils.ToolbarKey.CLIPBOARD)
+                check("clipboard button visible beside suggestions", clipButton?.isShown == true)
+                clipButton.performClick()
+            }
+            SystemClock.sleep(400)
+            for (i in 1..5) {
+                val position = main { dao.getAll().indexOfFirst { it.text == prefix + i } }
+                val recycler = main { keyboard().rootView.findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.clipboard_list) }
+                main { recycler.scrollToPosition(position) }
+                SystemClock.sleep(250)
+                main { requireNotNull(recycler.findViewHolderForAdapterPosition(position)).itemView.performClick() }
+                waitForIdleSync()
+                SystemClock.sleep(150)
+                check("history entry $i inserts into editor", text().contains(prefix + i))
+            }
+            main { ime().onCodeInput(KeyCode.CLIPBOARD, -1, -1, false) }
+            main { prefs.edit().apply { keys.forEach { putBoolean(it, false) } }.commit() }
+            button("Text")
+            check("sound and vibration can be disabled", main { !Settings.getValues().mSoundOn && !Settings.getValues().mVibrateOn })
+            copy("disabled")
+            check("disabled history does not collect copies", !saved("disabled"))
+        } finally {
+            main {
+                // Restore the system clip while collection is disabled, then remove only our entries.
+                prefs.edit().putBoolean(Settings.PREF_ENABLE_CLIPBOARD_HISTORY, false).commit()
+            }
+            button("Text")
+            main {
+                try {
+                    if (oldClip != null && oldClip.getItemAt(0).text?.startsWith("cupertino-smoke-") != true)
+                        cm.setPrimaryClip(oldClip)
+                    else helium314.keyboard.compat.ClipboardManagerCompat.clearPrimaryClip(cm)
+                } finally {
+                dao.getAll().indices.reversed().filter { dao.getAt(it).text?.startsWith(prefix) == true }
+                    .forEach { dao.deleteClipAt(it) }
+                prefs.edit().apply {
+                    previous.forEach { (key, value) -> if (value == null) remove(key) else putBoolean(key, value) }
+                }.commit()
+                }
+            }
+            button("Clear")
+        }
+    }
+
     private fun dictionaryCount(): Int = targetContext.contentResolver.query(Words.CONTENT_URI,
         arrayOf(Words.WORD), "word=? AND locale=?", arrayOf("cupertinotestword", "en_US"), null).use { it!!.count }
 
@@ -123,7 +212,9 @@ class KeyboardSmokeInstrumentation : Instrumentation() {
                 if (!main { KeyboardSwitcher.getInstance().mainKeyboardView?.isShown == true }) SystemClock.sleep(200)
             }
             check("IME is visible", main { keyboard().isShown })
-            if (phase.startsWith("emoji_")) {
+            if (phase == "clipboard") {
+                clipboardChecks()
+            } else if (phase.startsWith("emoji_")) {
                 touch(KeyCode.EMOJI)
                 check("emoji categories visible", main { KeyboardSwitcher.getInstance().emojiTabStrip.isShown })
                 check("emoji strip reveals the themed background", main {

@@ -69,6 +69,15 @@ insertion and return to Cupertino Keys. Hold the microphone to hide the keyboard
 Repeat actual dictation in a Shelter app separately; the automated phase does not
 verify external Google behavior or work-profile voice policy.
 
+Use `--phase clipboard` for a five-entry copy/paste test and feedback-setting checks.
+It refuses to run if the existing system clip contains a URI or intent that cannot
+be reliably restored. The test temporarily enables history, sound, and vibration,
+copies disposable text through Android's clipboard, opens the pinned history button,
+and inserts each entry through its visible list item. It also checks sensitive clips,
+password/no-learning fields, and disabling collection. It restores preferences and
+the original text clipboard and deletes its own entries. Audible/tactile feedback
+still needs a human check; silent and Do Not Disturb modes remain respected.
+
 ## Work profile on Xiaomi 14
 
 Status: the user confirmed the combined manual personal/Shelter check passed;

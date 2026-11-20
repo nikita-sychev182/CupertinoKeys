@@ -104,12 +104,12 @@ private class FrostedSurfaceDrawable(private val dark: Boolean, private val dens
         clip.addRoundRect(RectF(bounds), floatArrayOf(radius, radius, radius, radius, 0f, 0f, 0f, 0f), Path.Direction.CW)
         val alpha = if (nativeBlur) 120 else 255
         base = LinearGradient(0f, 0f, 0f, h,
-            ColorUtils.setAlphaComponent(if (dark) 0xFF282B33.toInt() else 0xFFE2E5EB.toInt(), alpha),
-            ColorUtils.setAlphaComponent(if (dark) 0xFF1D2733.toInt() else 0xFFD4DBE5.toInt(), alpha), Shader.TileMode.CLAMP)
+            ColorUtils.setAlphaComponent(if (dark) 0xFF19191B.toInt() else 0xFFE2E5EB.toInt(), alpha),
+            ColorUtils.setAlphaComponent(if (dark) 0xFF141416.toInt() else 0xFFD4DBE5.toInt(), alpha), Shader.TileMode.CLAMP)
         coolLight = RadialGradient(w * 0.12f, h * 0.65f, w * 0.7f,
-            if (dark) 0x243C85B9 else 0x455EADE2, Color.TRANSPARENT, Shader.TileMode.CLAMP)
+            if (dark) 0x066D7580 else 0x455EADE2, Color.TRANSPARENT, Shader.TileMode.CLAMP)
         warmLight = RadialGradient(w * 0.95f, h * 0.25f, w * 0.65f,
-            if (dark) 0x205F457E else 0x35E5BDCF, Color.TRANSPARENT, Shader.TileMode.CLAMP)
+            if (dark) 0x057C7482 else 0x35E5BDCF, Color.TRANSPARENT, Shader.TileMode.CLAMP)
     }
     override fun draw(canvas: Canvas) {
         canvas.save()
