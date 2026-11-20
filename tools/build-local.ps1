@@ -30,6 +30,8 @@ Push-Location 'K:/'
 try {
     $options = @('--console=plain', '--stacktrace', '-Dorg.gradle.jvmargs=-Xmx3g -Dfile.encoding=UTF-8', "-Pandroid.injected.build.abi=$Abi")
     if ($Task -eq 'Build') {
+        # Development APK must also install from the phone's file manager, without adb -t.
+        $options += '-Pandroid.injected.testOnly=false'
         & $gradle :app:assembleDebugNoMinify @options
     } else {
         & $gradle :app:testDebugUnitTest --tests '*LocalDictionaryProviderTest' --tests '*CupertinoDefaultsTest' --tests '*InputPrivacyTest' @options

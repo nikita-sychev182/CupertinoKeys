@@ -57,6 +57,32 @@ restores automatic theme selection afterward. Screenshots and color diagnostics 
 saved under `.tools/test-results/`. Check the rendered text contrast visually: MIUI
 can recolor Canvas text even when the application passes the correct Paint color.
 
+## Work profile on Xiaomi 14
+
+Status: not yet verified on the device. Standard Android shares the personal
+profile's IME with work apps; this is not a copy/sync of two installations.
+
+1. Install the local APK in the personal profile, enable Cupertino Keys, and select it.
+   Builds from `tools/build-local.ps1 -Task Build` can be opened in the file manager
+   without ADB because `testOnly` is disabled.
+2. In the personal-profile settings, change keyboard height and add a disposable
+   English dictionary entry `cupertinoworktest` with shortcut `cwt`.
+3. Open ordinary text fields in personal and work apps. Confirm both show Cupertino
+   Keys with the same height and RU/EN languages. Check that `cwt` offers the test
+   word in both, with English selected and suggestions enabled.
+4. Open settings from the keyboard while in a work app, change the height again,
+   and verify it carries back to a personal app. Delete the test dictionary entry
+   and confirm it disappears in both profiles after reopening the keyboard.
+5. Pause/resume the work profile and restart the phone; repeat the appearance and
+   dictionary checks. Password/no-learning fields must still suppress personalized
+   suggestions and learning.
+
+Do not clone/install a second copy merely to synchronize settings: its storage is
+separate. If the work app cannot use Cupertino Keys, check the organization's
+keyboard allowlist. If HyperOS actually uses separate IME instances, record the OS
+build and profile type before implementing a supported local bridge; this build
+does not claim to synchronize independent Android users or Xiaomi Second space.
+
 ## Acceptance checks
 
 - Fresh install starts with Russian and English available; switching language does not require network access.

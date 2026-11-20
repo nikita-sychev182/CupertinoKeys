@@ -60,6 +60,23 @@ mapping and an ignored `.tools` SDK/JDK/Gradle installation. It expects JDK 21 u
 `.tools/jdk`, the pinned Gradle distribution under `.tools/gradle`, and the SDK under
 `.tools/android-sdk`. It does not download tools or change system-wide environment variables.
 The APK is written to `app/build/intermediates/apk/debugNoMinify/`.
+The local build script disables `testOnly` so this development APK can also be
+installed by opening the file on a phone.
+
+## Personal and work profiles
+
+Install and select Cupertino Keys in the personal profile. Standard Android work
+profiles share the personal profile's input method, so the same keyboard settings
+and app-private personal dictionary are expected in both personal and work apps.
+Change settings and edit the dictionary through the personal-profile app; a second
+installation in the work profile has separate app storage and is not a sync mechanism.
+No network or cross-profile data bridge is needed for the shared keyboard.
+
+This follows [Android Enterprise's shared-IME behavior](https://developers.google.com/android/work/requirements?api=playemm#412_ime_management).
+An administrator can restrict which keyboards are permitted. Separate Android users
+and Xiaomi Second space are outside this shared-IME setup. Xiaomi 14 / HyperOS work
+profile behavior still requires the [device checks](docs/DEVICE_TESTING.md#work-profile-on-xiaomi-14).
+Password and no-learning fields retain their privacy restrictions in either profile.
 
 Primary device: **Xiaomi 14 / Android 16**. Secondary: **Xiaomi Mi 8 / Android 10 (API 29), MIUI 12**.
 See [device test steps](docs/DEVICE_TESTING.md).
