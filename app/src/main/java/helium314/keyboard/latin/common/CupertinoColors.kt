@@ -9,6 +9,9 @@ import androidx.core.graphics.ColorUtils
 
 /** Neutral tint over system-composited blur, or an opaque fallback. No pixel readback. */
 class CupertinoColors(private val base: Colors, val dark: Boolean, private val density: Float) : Colors by base {
+    companion object {
+        const val SURFACE_CORNER_RADIUS_DP = 18f
+    }
     fun setSurface(view: View, nativeBlur: Boolean) {
         view.background = FrostedSurfaceDrawable(dark, density, nativeBlur)
     }
@@ -72,7 +75,7 @@ private class FrostedSurfaceDrawable(private val dark: Boolean, private val dens
     override fun onBoundsChange(bounds: Rect) {
         val h = bounds.height().toFloat()
         clip.reset()
-        val radius = 10f * density
+        val radius = CupertinoColors.SURFACE_CORNER_RADIUS_DP * density
         clip.addRoundRect(RectF(bounds), floatArrayOf(radius, radius, radius, radius, 0f, 0f, 0f, 0f), Path.Direction.CW)
         val alpha = if (nativeBlur) { if (dark) 160 else 195 } else 255
         base = LinearGradient(0f, 0f, 0f, h,

@@ -102,7 +102,7 @@ object CupertinoWindowBlur {
                     }
                     window.setBackgroundDrawable(GradientDrawable().apply {
                         setColor(0x011C1C20)
-                        cornerRadius = 10f * density
+                        cornerRadius = CupertinoColors.SURFACE_CORNER_RADIUS_DP * density
                     })
                     // PhoneWindow needs its decor installed before the blur API is called.
                     window.decorView.isForceDarkAllowed = false

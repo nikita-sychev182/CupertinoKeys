@@ -43,6 +43,10 @@ public final class InputView extends FrameLayout {
     @Override
     protected void onFinishInflate() {
         super.onFinishInflate();
+        if (Settings.getValues().mColors instanceof helium314.keyboard.latin.common.CupertinoColors) {
+            findViewById(R.id.main_keyboard_frame).setPadding(0,
+                    Math.round(6f * getResources().getDisplayMetrics().density), 0, 0);
+        }
         final SuggestionStripView suggestionStripView =
                 findViewById(R.id.suggestion_strip_view);
         mMainKeyboardView = findViewById(R.id.keyboard_view);

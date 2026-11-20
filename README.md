@@ -24,6 +24,7 @@ When blur is unavailable, floating, or fullscreen, the surface is opaque and neu
 Flat, slightly translucent keycaps have no individual shadows or bevels. Native blur
 and changing background colors were verified on Xiaomi 14 / Android 16; see
 [glass and suggestion-row checks](docs/testing/glass-suggestions-2026-11-21.md).
+The upper surface corners use an 18 dp radius, with 6 dp of inner space above the content.
 
 On Android 16 with gesture navigation, the Cupertino theme replaces the system IME
 caption bar with a bottom-left language globe and bottom-right Google voice button.
@@ -36,8 +37,9 @@ The latest [reference-style and emoji checks](docs/testing/ios-reference-2026-11
 cover flatter keycaps, reduced height, the voice button, and themed emoji categories.
 
 With the Android 16 bottom panel, the whole suggestion row collapses when there are
-no word candidates and returns when candidates arrive. The clipboard button moves
-beside the microphone in the bottom panel while the row is hidden. Explicit tools, app-provided
+no word candidates and returns when candidates arrive. The clipboard button stays
+beside the microphone in the bottom panel, including with suggestions and emoji open.
+Its duplicate beside the suggestions is hidden when this bottom panel is available. Explicit tools, app-provided
 suggestions, emoji categories, and clipboard controls remain accessible. Older system
 panels retain the existing row so its clipboard button is not lost.
 

@@ -1235,7 +1235,8 @@ public class LatinIME extends InputMethodService implements
         }
         final int stripHeight = mKeyboardSwitcher.isShowingStripContainer() ? mKeyboardSwitcher.getStripContainer().getHeight() : 0;
         int visibleTopY = inputHeight - visibleKeyboardView.getHeight() - stripHeight
-                - helium314.keyboard.keyboard.CupertinoNavigationBar.height(mInputView);
+                - helium314.keyboard.keyboard.CupertinoNavigationBar.height(mInputView)
+                - mInputView.findViewById(R.id.main_keyboard_frame).getPaddingTop();
         if (Settings.getValues().mIsFloatingKeyboard)
             visibleTopY = getResources().getDisplayMetrics().heightPixels;
 

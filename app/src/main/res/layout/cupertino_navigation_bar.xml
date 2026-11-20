@@ -13,7 +13,6 @@
     <ImageButton android:id="@+id/cupertino_clipboard"
         android:layout_width="48dp" android:layout_height="48dp"
         android:layout_gravity="right|center_vertical" android:layout_marginRight="64dp"
-        android:visibility="gone"
         android:paddingLeft="14dp" android:paddingRight="14dp"
         android:paddingTop="10dp" android:paddingBottom="18dp" android:scaleType="fitCenter"
         android:background="?android:attr/selectableItemBackgroundBorderless"
