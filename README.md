@@ -37,7 +37,7 @@ cover flatter keycaps, reduced height, the voice button, and themed emoji catego
 
 With the Android 16 bottom panel, the whole suggestion row collapses when there are
 no word candidates and returns when candidates arrive. The clipboard button moves
-to the center of the bottom panel while the row is hidden. Explicit tools, app-provided
+beside the microphone in the bottom panel while the row is hidden. Explicit tools, app-provided
 suggestions, emoji categories, and clipboard controls remain accessible. Older system
 panels retain the existing row so its clipboard button is not lost.
 
