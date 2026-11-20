@@ -19,7 +19,7 @@ import org.robolectric.annotation.Config;
 import static org.junit.Assert.*;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(application = Application.class, sdk = {28, 36})
+@Config(application = Application.class, sdk = {29, 36})
 public class LocalDictionaryProviderTest {
     private LocalDictionaryProvider provider;
     private Context context;

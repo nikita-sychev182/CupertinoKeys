@@ -1,6 +1,6 @@
 # Device checks for Cupertino Keys
 
-No physical-device results have been recorded yet.
+Physical-device results: [Mi 8, 2026-11-20](testing/mi8-2026-11-20.md).
 
 ## Connect and identify
 
@@ -23,14 +23,33 @@ Download the development APK artifact from a successful `Cupertino Keys` workflo
 or build `assembleDebugNoMinify` locally. Then:
 
 ```powershell
-adb -s SERIAL install -r app/build/outputs/apk/debugNoMinify/CupertinoKeys_0.1.0-debugNoMinify.apk
+adb -s SERIAL install -r -t app/build/intermediates/apk/debugNoMinify/CupertinoKeys_0.1.0-debugNoMinify.apk
 ```
 
 Open Cupertino Keys, enable it in Android's keyboard settings and select it.
 Do not test on real passwords or private messages; use disposable text.
 GitHub Actions debug signing keys are not persistent between runners, so updating
 a CI build can require uninstalling the old development build (which erases its dictionary).
-A persistent development signing key remains a release-preparation task.
+Local builds retain their development signing key under `.tools/android-user-home`.
+Release signing remains a release-preparation task.
+
+## Repeatable device smoke test
+
+With the phone unlocked and Cupertino Keys selected manually:
+
+```powershell
+python tools/test-device.py --serial SERIAL --adb .tools/android-sdk/platform-tools/adb.exe
+```
+
+The debug-only instrumentation dispatches MotionEvents to the actual keyboard View
+and verifies committed text in its own disposable Activity. It works without MIUI's
+separate USB security toggle. This covers the IME handlers and InputConnection, but
+does not test Android's system touch dispatcher or physical finger gestures.
+Two process launches verify word persistence; the test word is removed afterward.
+The script leaves Cupertino Keys selected and opens the disposable test screen.
+Results go to ignored `.tools/test-results/device-*.txt`. The test Activity and runner
+are absent from release builds. A system-level input-injection test remains manual
+when MIUI blocks shell input commands.
 
 ## Acceptance checks
 

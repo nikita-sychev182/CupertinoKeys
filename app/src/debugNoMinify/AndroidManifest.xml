@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <instrumentation android:name="helium314.keyboard.latin.KeyboardSmokeInstrumentation"
+        android:targetPackage="${applicationId}" android:label="Cupertino Keys smoke tests" />
+    <application>
+        <activity android:name="helium314.keyboard.latin.KeyboardTestActivity"
+            android:exported="true"
+            android:label="Cupertino Keys input test"
+            android:theme="@android:style/Theme.Material.Light.NoActionBar"
+            android:windowSoftInputMode="adjustResize" />
+    </application>
+</manifest>

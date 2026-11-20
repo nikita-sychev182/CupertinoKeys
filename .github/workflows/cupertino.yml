@@ -23,15 +23,15 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: '21'
       - uses: android-actions/setup-android@v3
       - uses: gradle/actions/setup-gradle@v4
       - name: Verify privacy policy in source
         run: python3 tools/check_privacy.py
       - name: Install upstream SDK and NDK
-        run: sdkmanager 'platforms;android-37' 'ndk;28.0.13004108'
+        run: sdkmanager 'platforms;android-37.0' 'ndk;28.0.13004108'
       - name: Test private dictionary and language defaults
-        run: bash gradlew :app:testRunTestsUnitTest --tests '*LocalDictionaryProviderTest' --tests '*CupertinoDefaultsTest' --stacktrace
+        run: bash gradlew :app:testDebugUnitTest --tests '*LocalDictionaryProviderTest' --tests '*CupertinoDefaultsTest' --tests '*InputPrivacyTest' --stacktrace
       - name: Build development APK
         run: bash gradlew :app:assembleDebugNoMinify --stacktrace
       - name: Check final merged manifest
@@ -39,7 +39,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: CupertinoKeys-0.1.0-dev
-          path: app/build/outputs/apk/debugNoMinify/*.apk
+          path: app/build/intermediates/apk/debugNoMinify/*.apk
           if-no-files-found: error
       - uses: actions/upload-artifact@v4
         if: failure()

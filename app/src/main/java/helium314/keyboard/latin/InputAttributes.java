@@ -47,11 +47,15 @@ public final class InputAttributes {
     final public boolean mIsGeneralTextInput;
     final public int mInputType;
     final private EditorInfo mEditorInfo;
+    private static final int SETTINGS_IME_FLAGS = EditorInfo.IME_FLAG_FORCE_ASCII
+            | EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING;
+    private final int mSettingsImeFlags;
     final private String mPackageNameForPrivateImeOptions;
 
     public InputAttributes(final EditorInfo editorInfo, final boolean isFullscreenMode,
             final String packageNameForPrivateImeOptions) {
         mEditorInfo = editorInfo;
+        mSettingsImeFlags = editorInfo == null ? 0 : editorInfo.imeOptions & SETTINGS_IME_FLAGS;
         mPackageNameForPrivateImeOptions = packageNameForPrivateImeOptions;
         mTargetApplicationPackageName = null != editorInfo ? editorInfo.packageName : null;
         mInputType = AppWorkarounds.INSTANCE.adjustInputType(null != editorInfo ? editorInfo.inputType : 0, mTargetApplicationPackageName);
@@ -142,8 +146,10 @@ public final class InputAttributes {
     }
 
     public boolean isSameInputType(final EditorInfo editorInfo) {
-        return editorInfo.inputType == mInputType && mEditorInfo != null
-                && (mEditorInfo.imeOptions & EditorInfo.IME_FLAG_FORCE_ASCII) == (editorInfo.imeOptions & EditorInfo.IME_FLAG_FORCE_ASCII);
+        // Apps can restart the same editor with changed privacy flags. Reload settings
+        // in both directions, even when the inputType or EditorInfo instance is reused.
+        return editorInfo != null && editorInfo.inputType == mInputType && mEditorInfo != null
+                && mSettingsImeFlags == (editorInfo.imeOptions & SETTINGS_IME_FLAGS);
     }
 
     private boolean hasNoMicrophoneKeyOption() {

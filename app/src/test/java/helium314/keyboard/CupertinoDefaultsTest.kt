@@ -14,11 +14,12 @@ import org.robolectric.annotation.Config
 import kotlin.test.assertEquals
 
 @RunWith(RobolectricTestRunner::class)
-@Config(application = Application::class, sdk = [28, 36])
+@Config(application = Application::class, sdk = [29, 36])
 class CupertinoDefaultsTest {
     @Test fun firstInstallEnablesRussianAndEnglish() {
         val context = RuntimeEnvironment.getApplication()
         context.prefs().edit().clear().commit()
+        Settings.init(context)
         SubtypeSettings.init(context)
         val saved = context.prefs().getString(Settings.PREF_ENABLED_SUBTYPES, "")!!
         assertEquals(setOf("ru", "en-US"), SubtypeSettings.createSettingsSubtypes(saved).map { it.locale.toLanguageTag() }.toSet())
@@ -28,6 +29,7 @@ class CupertinoDefaultsTest {
     @Test fun returningToSystemLanguagesIsNotOverwrittenOnRestart() {
         val context = RuntimeEnvironment.getApplication()
         context.prefs().edit().clear().commit()
+        Settings.init(context)
         SubtypeSettings.init(context)
         context.prefs().edit().putString(Settings.PREF_ENABLED_SUBTYPES, "").commit()
         SubtypeSettings.init(context)

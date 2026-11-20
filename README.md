@@ -30,22 +30,29 @@ must be evaluated separately from Android's documented backup APIs.
 The application ID is `dev.cupertinokeys.keyboard` (`.debug` for development builds),
 so it can coexist with HeliBoard. The display name is **Cupertino Keys**.
 
-Use Android Studio with JDK 17 and the SDK/NDK versions pinned by upstream
+Use Android Studio with JDK 21 (required by Robolectric for API 36 tests) and the SDK/NDK versions pinned by upstream
 (compile/target SDK 37, min SDK 21, NDK 28.0.13004108). Then:
 
 ```powershell
 python tools/check_privacy.py
-.\gradlew.bat :app:testRunTestsUnitTest --tests '*LocalDictionaryProviderTest' --tests '*CupertinoDefaultsTest'
+.\gradlew.bat :app:testDebugUnitTest --tests '*LocalDictionaryProviderTest' --tests '*CupertinoDefaultsTest' --tests '*InputPrivacyTest'
 .\gradlew.bat :app:assembleDebugNoMinify
 python tools/check_privacy.py --merged
 ```
 
-The `Cupertino Keys` GitHub Actions workflow runs these checks and uploads a development APK.
+The `Cupertino Keys` GitHub Actions workflow is configured to run these checks and upload a development APK.
 Tests cover dictionary persistence, locale separation, duplicate handling, private URIs,
-and first-run language defaults on API 28 and 36. A successful CI run is required before
-treating the APK as tested. Source checks alone do not establish runtime behavior.
+first-run language defaults, and changes to no-learning flags on API 29 and 36.
+All 18 cases passed locally on JDK 21. Source checks alone do not establish runtime behavior.
 
-Primary device: **Xiaomi 14 / Android 16**. Secondary: **Xiaomi Mi 8**, OS version to be read via ADB.
+On Windows, paths containing spaces or `!` require special handling for the upstream
+NDK scripts. `tools/build-local.ps1 -Task Build` (or `-Task Test`) uses a checked `K:`
+mapping and an ignored `.tools` SDK/JDK/Gradle installation. It expects JDK 21 under
+`.tools/jdk`, the pinned Gradle distribution under `.tools/gradle`, and the SDK under
+`.tools/android-sdk`. It does not download tools or change system-wide environment variables.
+The APK is written to `app/build/intermediates/apk/debugNoMinify/`.
+
+Primary device: **Xiaomi 14 / Android 16**. Secondary: **Xiaomi Mi 8 / Android 10 (API 29), MIUI 12**.
 See [device test steps](docs/DEVICE_TESTING.md).
 
 ---
