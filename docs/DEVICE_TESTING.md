@@ -69,6 +69,13 @@ insertion and return to Cupertino Keys. Hold the microphone and select Hide to c
 Repeat actual dictation in a Shelter app separately; the automated phase does not
 verify external Google behavior or work-profile voice policy.
 
+Use `--phase voice_compact` to exercise the compact dictation UI with synthetic
+recognition callbacks (no microphone capture). This checks its 80 dp height, 8 dp
+gap above the footer microphone, stable keyboard/editor geometry, final insertion,
+duplicate-result suppression, and cancellation on typing, hiding, password-field
+switches, and explicit dismissal. Real recognition and runtime permission remain
+manual checks: tap the microphone, allow access, tap again, dictate disposable text.
+
 Use `--phase clipboard` for a five-entry copy/paste test and feedback-setting checks.
 It refuses to run if the existing system clip contains a URI or intent that cannot
 be reliably restored. The test temporarily enables history, sound, and vibration,

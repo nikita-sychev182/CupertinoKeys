@@ -13,7 +13,7 @@ import helium314.keyboard.latin.settings.Settings
 import helium314.keyboard.latin.settings.SettingsValues
 import java.util.Locale
 
-/** Explicit handoff to the enabled Google voice IME. Cupertino never records audio. */
+/** Compact Google recognition, with external voice IME fallback if no public service exists. */
 object GoogleVoiceInput {
     private val googlePackages = setOf("com.google.android.tts", "com.google.android.googlequicksearchbox")
 
@@ -30,6 +30,7 @@ object GoogleVoiceInput {
 
     @JvmStatic fun start(ime: LatinIME) {
         if (!isAllowed(Settings.getValues())) return
+        if (CupertinoVoiceInput.start(ime)) return
         val target = enabledIme(ime)
         if (target == null) {
             Toast.makeText(ime, R.string.cupertino_enable_google_voice, Toast.LENGTH_LONG).show()

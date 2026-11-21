@@ -80,6 +80,7 @@ object CupertinoNavigationBar {
                 else ime.requestHideSelf(0)
             }
             voice.setOnLongClickListener {
+                CupertinoVoiceInput.cancel()
                 dismissMenu()
                 menu = CupertinoAccessoryMenu.show(voice,
                     clipboard = { ime.onCodeInput(helium314.keyboard.keyboard.internal.keyboard_parser.floris.KeyCode.CLIPBOARD, -1, -1, false) },

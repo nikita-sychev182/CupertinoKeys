@@ -10,6 +10,8 @@ SPDX-License-Identifier: Apache-2.0 AND GPL-3.0-only
 
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- Optional compact Google dictation; requested only after tapping the microphone. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
     <application android:label="@string/english_ime_name"
             android:name="helium314.keyboard.latin.App"
@@ -50,6 +52,9 @@ SPDX-License-Identifier: Apache-2.0 AND GPL-3.0-only
         </service>
 
         <!-- Activities -->
+        <activity android:name="helium314.keyboard.keyboard.VoicePermissionActivity"
+            android:exported="false" android:excludeFromRecents="true"
+            android:theme="@style/TransparentActivityTheme" />
         <activity android:name="helium314.keyboard.settings.SettingsActivity"
                 android:theme="@style/platformActivityTheme"
                 android:icon="@drawable/cupertino_launcher"
@@ -126,6 +131,9 @@ SPDX-License-Identifier: Apache-2.0 AND GPL-3.0-only
     </application>
 
     <queries>
+        <intent>
+            <action android:name="android.speech.RecognitionService" />
+        </intent>
         <!-- To detect other IMEs -->
         <intent>
             <!-- changed to * as it's supposed to help with finding other keyboard apps, see https://github.com/HeliBorg/HeliBoard/issues/1340 -->

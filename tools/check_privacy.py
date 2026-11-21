@@ -9,7 +9,6 @@ FORBIDDEN = {
     "android.permission.INTERNET", "android.permission.ACCESS_NETWORK_STATE",
     "android.permission.READ_USER_DICTIONARY", "android.permission.WRITE_USER_DICTIONARY",
     "android.permission.READ_CONTACTS",
-    "android.permission.RECORD_AUDIO",  # Voice input is delegated to Google's separate IME.
 }
 DOMAINS = {
     "root", "file", "database", "sharedpref", "external", "device_root",
@@ -34,6 +33,10 @@ def check_manifest(path):
     assert not any("GestureFileProvider" in p.get(ANDROID + "name", "") for p in providers)
     ime = next(s for s in app.findall("service") if s.get(ANDROID + "name", "").endswith("LatinIME"))
     assert ime.get(ANDROID + "permission") == "android.permission.BIND_INPUT_METHOD"
+    # Compact dictation uses Google's recognizer after a runtime microphone grant.
+    permission_activity = next(a for a in app.findall("activity")
+        if a.get(ANDROID + "name", "").endswith("VoicePermissionActivity"))
+    assert permission_activity.get(ANDROID + "exported") == "false"
 
 
 def check_exclusions(node):

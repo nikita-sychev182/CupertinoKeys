@@ -1,5 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <item name="cupertino_voice_panel" type="id" />
+    <string name="cupertino_voice_connecting">Starting…</string>
+    <string name="cupertino_voice_listening">Listening…</string>
+    <string name="cupertino_voice_processing">Recognizing…</string>
+    <string name="cupertino_voice_done">Finish dictation</string>
+    <string name="cupertino_voice_no_speech">No speech heard. Try again.</string>
+    <string name="cupertino_voice_network_error">Google recognition is unavailable. Check the connection.</string>
+    <string name="cupertino_voice_unavailable">Could not start Google recognition.</string>
+    <string name="cupertino_voice_permission_required">Allow microphone access in app settings to use dictation.</string>
+    <string name="cupertino_voice_permission_granted">Tap the keyboard microphone again to dictate.</string>
     <string name="cupertino_spell_checker_name" translatable="false">Cupertino Keys</string>
     <string name="cupertino_clipboard_empty">Copied text will appear here.\nTap an entry to paste, or hold it to pin.</string>
     <string name="cupertino_enable">Enable</string>

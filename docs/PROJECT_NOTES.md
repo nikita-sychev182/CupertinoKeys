@@ -48,10 +48,14 @@ The Cupertino Enter/action key has no long-press popup menu; emoji use their ded
 outlined smile button. Normal Enter/Send/Next actions remain controlled by the application.
 See [stable-height and Enter checks](testing/stable-suggestions-2026-11-21.md).
 
-Voice input hands control to an enabled Google Voice Typing keyboard. Cupertino Keys
-does not record audio or request microphone permission. Google may send audio to its
-servers under its own settings; this optional external service is separate from the
-local dictionary and is not an offline recognition guarantee.
+Voice input now uses Google's public SpeechRecognizer service with a compact 80 dp
+popup above the microphone, preserving keyboard height and the current IME. RECORD_AUDIO
+is requested at runtime after a microphone tap; returning from the permission prompt
+does not automatically start recording. No audio is stored by Cupertino Keys. Google
+may send audio to its servers; this is separate from the local dictionary and is not
+an offline guarantee. If no supported public Google recognition service is available,
+the enabled external Google Voice Typing keyboard remains the fallback. The published
+0.1.0 release predates this compact panel and uses only the external voice keyboard.
 
 Privacy changes:
 - No internet permission, shared Android dictionary permissions, or contacts access.

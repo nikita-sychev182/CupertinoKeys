@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="cupertino_voice_connecting">Подключаюсь…</string>
+    <string name="cupertino_voice_listening">Слушаю…</string>
+    <string name="cupertino_voice_processing">Распознаю…</string>
+    <string name="cupertino_voice_done">Завершить диктовку</string>
+    <string name="cupertino_voice_no_speech">Не удалось расслышать. Попробуйте ещё раз.</string>
+    <string name="cupertino_voice_network_error">Распознавание Google недоступно. Проверьте соединение.</string>
+    <string name="cupertino_voice_unavailable">Не удалось запустить распознавание Google.</string>
+    <string name="cupertino_voice_permission_required">Для диктовки разрешите доступ к микрофону в настройках приложения.</string>
+    <string name="cupertino_voice_permission_granted">Нажмите микрофон на клавиатуре ещё раз для диктовки.</string>
     <string name="cupertino_clipboard_empty">Здесь появится скопированный текст.\nНажмите запись, чтобы вставить, или удерживайте, чтобы закрепить.</string>
     <string name="cupertino_enable">Включить</string>
     <string name="cupertino_clipboard_enable_message">История буфера выключена. Включить локальное сохранение скопированного текста? Обычные записи хранятся час по умолчанию, закреплённые — до удаления.</string>

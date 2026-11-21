@@ -463,6 +463,78 @@ class KeyboardSmokeInstrumentation : Instrumentation() {
             } else if (phase == "work_cleanup") {
                 button("Delete test word")
                 check("work-profile test word removed", dictionaryCount() == 0)
+            } else if (phase == "voice_compact") {
+                // Exercise real UI/result handling without starting a microphone or sending audio.
+                val owner = helium314.keyboard.keyboard.CupertinoVoiceInput
+                val sessionClass = Class.forName("helium314.keyboard.keyboard.CupertinoVoiceInput\$Session")
+                fun fakeSession(): android.speech.RecognitionListener = main {
+                    val anchor = keyboard().rootView.findViewById<View>(R.id.cupertino_voice)
+                    val session = sessionClass.getDeclaredConstructor(LatinIME::class.java, View::class.java)
+                        .apply { isAccessible = true }.newInstance(ime(), anchor)
+                    owner.javaClass.getDeclaredField("active").apply { isAccessible = true }.set(null, session)
+                    sessionClass.getDeclaredMethod("show").apply { isAccessible = true }.invoke(session)
+                    (session as android.speech.RecognitionListener).also { it.onReadyForSpeech(Bundle()) }
+                }
+                fun result(value: String) = Bundle().apply {
+                    putStringArrayList(android.speech.SpeechRecognizer.RESULTS_RECOGNITION, arrayListOf(value))
+                }
+                fun geometry() = main {
+                    val insets = android.inputmethodservice.InputMethodService.Insets()
+                    ime().onComputeInsets(insets)
+                    Pair(keyboard().rootView.findViewById<View>(R.id.main_keyboard_frame).height, insets.contentTopInsets)
+                }
+                button("Clear")
+                val before = geometry()
+                val first = fakeSession()
+                SystemClock.sleep(300)
+                check("dictation does not resize keyboard or editor", before == geometry())
+                main {
+                    val panel = requireNotNull(owner.panel())
+                    val anchor = keyboard().rootView.findViewById<View>(R.id.cupertino_voice)
+                    val panelXY = IntArray(2); val anchorXY = IntArray(2)
+                    panel.getLocationOnScreen(panelXY); anchor.getLocationOnScreen(anchorXY)
+                    val density = panel.resources.displayMetrics.density
+                    check("voice panel is compact", panel.height <= 82 * density)
+                    check("voice panel is directly above microphone", kotlin.math.abs(anchorXY[1] - panelXY[1] - panel.height - 8 * density) <= 2)
+                    check("voice panel fits screen width", panelXY[0] >= 0 && panelXY[0] + panel.width <= keyboard().rootView.width)
+                    first.onPartialResults(result("voice preview"))
+                }
+                check("partial speech never changes editor", text().isEmpty())
+                sendStatus(1, Bundle().apply { putString("stream", "PREVIEW_READY\n") })
+                SystemClock.sleep(8000)
+                main { first.onResults(result("voice test")) }
+                check("final speech commits once", text() == "voice test")
+                main { first.onResults(result("duplicate")) }
+                check("late duplicate result is ignored", text() == "voice test")
+                check("result closes voice panel", main { owner.panel() == null })
+                button("Clear")
+                val cancelled = fakeSession()
+                main { (owner.panel() as ViewGroup).getChildAt(0).performClick() }
+                main { cancelled.onResults(result("cancelled")) }
+                check("cancel discards late recognition", text().isEmpty())
+                val privateField = fakeSession()
+                button("Password")
+                main { privateField.onResults(result("must not enter password")) }
+                check("switching to password cancels speech", main { owner.panel() == null } && text().isEmpty())
+                button("Text")
+                val hidden = fakeSession()
+                main { ime().requestHideSelf(0) }
+                val hideDeadline = SystemClock.uptimeMillis() + 2500
+                while (main { ime().isInputViewShown } && SystemClock.uptimeMillis() < hideDeadline) SystemClock.sleep(50)
+                check("IME finishes hiding before late callback", main { !ime().isInputViewShown })
+                main { hidden.onResults(result("hidden")) }
+                check("hiding keyboard discards late speech", main { owner.panel() == null } && text().isEmpty())
+                button("Text")
+                val typing = fakeSession()
+                touch('a'.code.takeIf { language() == "en" } ?: 1092)
+                val typed = text()
+                main { typing.onResults(result("stale")) }
+                check("typing cancels dictation", main { owner.panel() == null } && text() == typed)
+                button("Clear")
+                check("Cupertino remains current IME", main {
+                    android.provider.Settings.Secure.getString(targetContext.contentResolver,
+                        android.provider.Settings.Secure.DEFAULT_INPUT_METHOD).startsWith(targetContext.packageName + "/")
+                })
             } else if (phase == "voice") {
                 check("Google Voice Typing is enabled", main {
                     helium314.keyboard.keyboard.GoogleVoiceInput.enabledIme(ime()) != null

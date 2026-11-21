@@ -709,6 +709,7 @@ public class LatinIME extends InputMethodService implements
 
     @Override
     public void onDestroy() {
+        helium314.keyboard.keyboard.CupertinoVoiceInput.cancel();
         helium314.keyboard.keyboard.CupertinoWindowBlur.detach();
         helium314.keyboard.keyboard.CupertinoNavigationBar.detach();
         mClipboardHistoryManager.onDestroy();
@@ -802,6 +803,7 @@ public class LatinIME extends InputMethodService implements
     @Override
     public void onStartInput(final EditorInfo editorInfo, final boolean restarting) {
         mHandler.onStartInput(editorInfo, restarting);
+        helium314.keyboard.keyboard.CupertinoVoiceInput.cancel();
     }
 
     @Override
@@ -814,6 +816,7 @@ public class LatinIME extends InputMethodService implements
     @Override
     public void onFinishInputView(final boolean finishingInput) {
         StatsUtils.onFinishInputView();
+        helium314.keyboard.keyboard.CupertinoVoiceInput.cancel();
         mHandler.onFinishInputView(finishingInput);
         mStatsUtilsManager.onFinishInputView();
         mGestureConsumer = GestureConsumer.NULL_GESTURE_CONSUMER;
@@ -1047,6 +1050,7 @@ public class LatinIME extends InputMethodService implements
 
     @Override
     public void onWindowHidden() {
+        helium314.keyboard.keyboard.CupertinoVoiceInput.cancel();
         helium314.keyboard.keyboard.CupertinoNavigationBar.dismissMenu();
         helium314.keyboard.keyboard.CupertinoWindowBlur.hide();
         super.onWindowHidden();
@@ -1459,6 +1463,9 @@ public class LatinIME extends InputMethodService implements
     // This method is public for testability of LatinIME, but also in the future it should
     // completely replace #onCodeInput.
     public void onEvent(@NonNull final Event event) {
+        if (KeyCode.VOICE_INPUT != event.getKeyCode()) {
+            helium314.keyboard.keyboard.CupertinoVoiceInput.cancel();
+        }
         if (KeyCode.VOICE_INPUT == event.getKeyCode()) {
             helium314.keyboard.keyboard.GoogleVoiceInput.start(this);
         }
@@ -1472,6 +1479,7 @@ public class LatinIME extends InputMethodService implements
 
     public void onTextInput(@Nullable String rawText) {
         if (rawText == null) return;
+        helium314.keyboard.keyboard.CupertinoVoiceInput.cancel();
         // TODO: have the keyboard pass the correct key code when we need it.
         Event event = Event.createSoftwareTextEvent(rawText, KeyCode.MULTIPLE_CODE_POINTS, null);
         InputTransaction completeInputTransaction = mInputLogic.onTextInput(mSettings.getCurrent(),
