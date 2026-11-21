@@ -2,12 +2,14 @@
 <resources>
     <string name="cupertino_clipboard_empty">Здесь появится скопированный текст.\nНажмите запись, чтобы вставить, или удерживайте, чтобы закрепить.</string>
     <string name="cupertino_enable">Включить</string>
-    <string name="cupertino_clipboard_enable_message">История буфера выключена. Включить локальное сохранение скопированного текста? Обычные записи хранятся час по умолчанию, закреплённые — до удаления. Удержание кнопки буфера вставляет текущую копию без включения истории.</string>
+    <string name="cupertino_clipboard_enable_message">История буфера выключена. Включить локальное сохранение скопированного текста? Обычные записи хранятся час по умолчанию, закреплённые — до удаления.</string>
     <string name="cupertino_feedback_dnd">«Не беспокоить» подавляет звук и обычную вибрацию клавиатуры</string>
     <string name="cupertino_feedback_silent">Беззвучный режим подавляет звук клавиатуры</string>
     <string name="cupertino_feedback_sound_settings">Открыть настройки звука телефона. Вибрацию в режиме «Не беспокоить» можно разрешить отдельным переключателем ниже.</string>
-    <string name="cupertino_clipboard_summary">Хранить скопированный текст локально: 5 записей и больше. По умолчанию — 1 час. Кнопка буфера находится рядом с подсказками; удержание вставляет последнюю копию. Помеченные как конфиденциальные записи не сохраняются.</string>
-    <string name="cupertino_voice_description">Голосовой ввод Google. Удерживайте, чтобы скрыть клавиатуру.</string>
+    <string name="cupertino_clipboard_summary">Хранить скопированный текст локально: 5 записей и больше. По умолчанию — 1 час. Для открытия истории удерживайте микрофон и выберите «Буфер». Помеченные как конфиденциальные записи не сохраняются.</string>
+    <string name="cupertino_action_clipboard">Буфер</string>
+    <string name="cupertino_action_hide">Свернуть</string>
+    <string name="cupertino_voice_description">Голосовой ввод Google. Удерживайте для буфера или сворачивания клавиатуры.</string>
     <string name="cupertino_enable_google_voice">Включите «Голосовой ввод Google» в настройках клавиатур Android.</string>
     <string name="cupertino_voice_not_permitted">Голосовой ввод не разрешён в этом профиле.</string>
 </resources>

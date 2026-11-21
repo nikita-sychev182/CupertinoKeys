@@ -567,6 +567,8 @@ public final class KeyboardSwitcher {
         mEmojiTabStripView = mCurrentInputView.findViewById(R.id.emoji_tab_strip);
         mClipboardStripView = mCurrentInputView.findViewById(R.id.clipboard_strip);
         mClipboardStripScrollView = mCurrentInputView.findViewById(R.id.clipboard_strip_scroll_view);
+        Settings.getValues().mColors.setBackground(mClipboardStripScrollView, helium314.keyboard.latin.common.ColorType.STRIP_BACKGROUND);
+        Settings.getValues().mColors.setBackground(mClipboardStripView, helium314.keyboard.latin.common.ColorType.STRIP_BACKGROUND);
         mSuggestionStripView = mCurrentInputView.findViewById(R.id.suggestion_strip_view);
         mStripContainer = mCurrentInputView.findViewById(R.id.strip_container);
         mBackgroundGatheringIndicator = mCurrentInputView.findViewById(R.id.backgroundGatheringIndicator);

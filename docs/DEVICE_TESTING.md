@@ -65,23 +65,41 @@ themed keyboard background instead of inheriting a static light XML background.
 Use `--phase voice` to check discovery of enabled Google Voice Typing and suppression
 in password/no-learning fields. This does not start recording. Manually tap the
 bottom-right microphone in an ordinary text field, dictate disposable text, and check
-insertion and return to Cupertino Keys. Hold the microphone to hide the keyboard.
+insertion and return to Cupertino Keys. Hold the microphone and select Hide to close it.
 Repeat actual dictation in a Shelter app separately; the automated phase does not
 verify external Google behavior or work-profile voice policy.
 
 Use `--phase clipboard` for a five-entry copy/paste test and feedback-setting checks.
 It refuses to run if the existing system clip contains a URI or intent that cannot
 be reliably restored. The test temporarily enables history, sound, and vibration,
-copies disposable text through Android's clipboard, opens the pinned history button,
+copies disposable text through Android's clipboard, opens history from the microphone menu (or the pinned button on older layouts),
 and inserts each entry through its visible list item. It also checks sensitive clips,
 password/no-learning fields, and disabling collection. It restores preferences and
 the original text clipboard and deletes its own entries. Audible/tactile feedback
 still needs a human check; silent and Do Not Disturb modes remain respected.
 
-Use `--phase clipboard_access` to check real view-dispatched taps on the pinned
-button, its IME touch region, the disabled-history prompt, cancellation, and opening
+Use `--phase clipboard_access` to check view-dispatched taps on the clipboard menu
+item, its window bounds, the disabled-history prompt, cancellation, and opening
 the panel after enabling. This phase captures the prompt in the disposable Activity
 and restores the previous history preference. It never replaces the system clipboard.
+
+Use `--phase accessories` to check comma/period tap-and-hold behavior in RU/EN,
+the microphone palette, and its Hide action. `--phase clipboard_dark` checks both
+clipboard header backgrounds and saves a preview with history entries hidden.
+`--phase spelling` checks bundled RU/EN dictionaries and reports misspelling spans
+after committing ordinary words. Select Cupertino Keys in Android's system spelling
+settings first (older builds label it HeliBoard SpellChecker). A zero span count alone
+does not establish correction accuracy for arbitrary words or other apps.
+
+On Xiaomi 14 on 2026-11-21, accessories (8 checks), clipboard access (13), dark
+clipboard headers (3), spelling (11), and stable suggestion height (30) passed.
+The dark clipboard screenshot showed a uniform themed header without the white band.
+The local dictionaries accepted four ordinary words per language; committed `hello`
+and `привет` had zero misspelling spans in the disposable editor. The selected system
+checker was this fork. Physical slide-to-select and spelling in third-party/work apps
+still need manual verification because HyperOS blocks shell input injection/profile access.
+All 24 selected JVM tests passed, including two regressions for punctuation-only and
+null-entry spell-check batches. Both merged manifests passed the privacy check.
 
 ## Work profile on Xiaomi 14
 

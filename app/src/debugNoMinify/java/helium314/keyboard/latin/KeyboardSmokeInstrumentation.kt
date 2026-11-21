@@ -11,6 +11,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
+import android.widget.TextView
 import helium314.keyboard.keyboard.KeyboardSwitcher
 import helium314.keyboard.keyboard.internal.keyboard_parser.floris.KeyCode
 import helium314.keyboard.latin.dictionary.LocalUserDictionary.Words
@@ -72,6 +73,11 @@ class KeyboardSmokeInstrumentation : Instrumentation() {
             check("navigation target $id is inside IME touch region", insets.touchableRegion.contains(x, y))
             if (longPress) {
                 check("navigation long-press handled", target.performLongClick())
+                if (id == R.id.cupertino_voice) {
+                    val menu = requireNotNull(helium314.keyboard.keyboard.CupertinoNavigationBar.menuContent())
+                    check("microphone menu offers clipboard and hide", menu.findViewById<View>(R.id.cupertino_clipboard) != null)
+                    menu.findViewById<View>(R.id.cupertino_menu_hide).performClick()
+                }
                 return@main
             }
             val now = SystemClock.uptimeMillis()
@@ -110,9 +116,18 @@ class KeyboardSmokeInstrumentation : Instrumentation() {
 
     private fun clipboardButton(): View {
         val root = keyboard().rootView
-        return root.findViewById<View>(R.id.cupertino_clipboard)?.takeIf { it.isShown }
+        return helium314.keyboard.keyboard.CupertinoNavigationBar.menuContent()?.findViewById<View>(R.id.cupertino_clipboard)
             ?: root.findViewById<ViewGroup>(R.id.pinned_keys)
                 .findViewWithTag(helium314.keyboard.latin.utils.ToolbarKey.CLIPBOARD)
+    }
+
+    private fun showClipboardMenuIfNeeded() {
+        main {
+            if (keyboard().rootView.findViewById<View>(R.id.cupertino_navigation_bar).isShown)
+                keyboard().rootView.findViewById<View>(R.id.cupertino_voice).performLongClick()
+        }
+        waitForIdleSync()
+        SystemClock.sleep(200)
     }
 
     private fun clipboardAccessChecks() {
@@ -122,9 +137,10 @@ class KeyboardSmokeInstrumentation : Instrumentation() {
         fun dialog() = LatinIME::class.java.getDeclaredField("mOptionsDialog").apply { isAccessible = true }
             .get(ime()) as android.app.AlertDialog
         fun tapClipboard() {
+            showClipboardMenuIfNeeded()
             main {
-                val root = keyboard().rootView
                 val target = clipboardButton()
+                val root = target.rootView
                 check("clipboard target is visible", target.isShown)
                 val location = IntArray(2)
                 val rootLocation = IntArray(2)
@@ -134,7 +150,7 @@ class KeyboardSmokeInstrumentation : Instrumentation() {
                 val y = location[1] + target.height / 2
                 val insets = android.inputmethodservice.InputMethodService.Insets()
                 ime().onComputeInsets(insets)
-                check("clipboard target is inside reported touch region", insets.touchableRegion.contains(x, y))
+                check("clipboard target fits its window", x - rootLocation[0] in 0 until root.width && y - rootLocation[1] in 0 until root.height)
                 val now = SystemClock.uptimeMillis()
                 for (action in listOf(MotionEvent.ACTION_DOWN, MotionEvent.ACTION_UP)) {
                     val event = MotionEvent.obtain(now, now + if (action == MotionEvent.ACTION_UP) 70 else 0,
@@ -216,6 +232,7 @@ class KeyboardSmokeInstrumentation : Instrumentation() {
             copy("private")
             check("no-learning field does not collect history", !saved("private"))
             button("Text")
+            showClipboardMenuIfNeeded()
             main {
                 val clipButton = clipboardButton()
                 check("clipboard button remains visible", clipButton.isShown)
@@ -267,8 +284,8 @@ class KeyboardSmokeInstrumentation : Instrumentation() {
     override fun onStart() {
         val output = Bundle()
         try {
-            val themedPreview = phase.startsWith("preview_") || phase.startsWith("emoji_") || phase.startsWith("blur_")
-            if (themedPreview) SettingsActivity.forceNight = phase.endsWith("_dark") || phase.startsWith("blur_")
+            val themedPreview = phase.startsWith("preview_") || phase.startsWith("emoji_") || phase.startsWith("blur_") || phase == "accessories" || phase == "clipboard_dark"
+            if (themedPreview) SettingsActivity.forceNight = phase.endsWith("_dark") || phase.startsWith("blur_") || phase == "accessories"
             activity = startActivitySync(Intent(targetContext, KeyboardTestActivity::class.java)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
             if (themedPreview) main { KeyboardSwitcher.getInstance().setThemeNeedsReload() }
@@ -277,7 +294,88 @@ class KeyboardSmokeInstrumentation : Instrumentation() {
                 if (!main { KeyboardSwitcher.getInstance().mainKeyboardView?.isShown == true }) SystemClock.sleep(200)
             }
             check("IME is visible", main { keyboard().isShown })
-            if (phase.startsWith("blur_")) {
+            if (phase == "spelling") {
+                for ((lang, words) in listOf("en" to listOf("hello", "world", "keyboard", "message"),
+                    "ru" to listOf("привет", "мир", "слово", "сообщение"))) {
+                    if (language() != lang) touch(32, 250f)
+                    val dictionary = main {
+                        LatinIME::class.java.getDeclaredField("mDictionaryFacilitator").apply { isAccessible = true }
+                            .get(ime()) as DictionaryFacilitator
+                    }
+                    repeat(20) { if (!dictionary.hasAtLeastOneInitializedMainDictionary()) SystemClock.sleep(100) }
+                    check("$lang bundled dictionary loaded", dictionary.hasAtLeastOneInitializedMainDictionary())
+                    for (word in words) check("$lang dictionary accepts $word", dictionary.isValidSpellingWord(word))
+                    button("Clear")
+                    words.first().forEach { touch(it.code) }
+                    touch(32)
+                    SystemClock.sleep(900)
+                    val diagnostic = main {
+                        val spans = editor().text.getSpans(0, editor().length(), android.text.style.SuggestionSpan::class.java)
+                        "SPELLING_CHECK: $lang committed_word_misspelling_spans=" +
+                            spans.count { it.flags and android.text.style.SuggestionSpan.FLAG_MISSPELLED != 0 }
+                    }
+                    sendStatus(1, Bundle().apply { putString("stream", "$diagnostic\n") })
+                }
+                button("Clear")
+            } else if (phase == "accessories") {
+                for (lang in listOf("en", "ru")) {
+                    if (language() != lang) touch(32, 250f)
+                    button("Clear")
+                    touch(44)
+                    check("$lang comma tap inserts comma", text() == ",")
+                    button("Clear")
+                    touch(44, holdMs = 1200)
+                    check("$lang comma hold inserts only period", text() == ".")
+                }
+                button("Clear")
+                showClipboardMenuIfNeeded()
+                check("accessory palette visible above microphone", main {
+                    helium314.keyboard.keyboard.CupertinoNavigationBar.menuContent()?.isShown == true
+                })
+                check("separate bottom clipboard removed", main { keyboard().rootView.findViewById<View>(R.id.cupertino_clipboard) == null })
+                sendStatus(1, Bundle().apply { putString("stream", "PREVIEW_READY\n") })
+                SystemClock.sleep(8000)
+                main { helium314.keyboard.keyboard.CupertinoNavigationBar.menuContent()!!.findViewById<View>(R.id.cupertino_menu_hide).performClick() }
+                SystemClock.sleep(500)
+                check("hide menu action closes keyboard", main { !ime().isInputViewShown })
+                button("Text")
+                SettingsActivity.forceNight = null
+            } else if (phase == "clipboard_dark") {
+                val prefs = targetContext.prefs()
+                val key = Settings.PREF_ENABLE_CLIPBOARD_HISTORY
+                val old = if (prefs.contains(key)) prefs.getBoolean(key, false) else null
+                try {
+                    main { prefs.edit().putBoolean(key, true).commit() }
+                    button("Text")
+                    showClipboardMenuIfNeeded()
+                    main { clipboardButton().performClick() }
+                    SystemClock.sleep(500)
+                    main {
+                        val root = keyboard().rootView
+                        for (id in listOf(R.id.clipboard_strip_scroll_view, R.id.clipboard_strip)) {
+                            val view = root.findViewById<View>(id)
+                            check("clipboard header is visible and transparent", view.isShown &&
+                                (view.background as? android.graphics.drawable.ColorDrawable)?.color == android.graphics.Color.TRANSPARENT)
+                        }
+                        // Never capture the user's clipboard entries in a visual test.
+                        root.findViewById<View>(R.id.clipboard_list).visibility = View.INVISIBLE
+                        root.findViewById<TextView>(R.id.clipboard_empty_view).apply {
+                            text = "Clipboard preview"
+                            visibility = View.VISIBLE
+                        }
+                    }
+                    sendStatus(1, Bundle().apply { putString("stream", "PREVIEW_READY\n") })
+                    SystemClock.sleep(8000)
+                } finally {
+                    main {
+                        prefs.edit().apply { if (old == null) remove(key) else putBoolean(key, old) }.commit()
+                        keyboard().rootView.findViewById<View>(R.id.clipboard_list).visibility = View.VISIBLE
+                        keyboard().rootView.findViewById<TextView>(R.id.clipboard_empty_view).setText(R.string.cupertino_clipboard_empty)
+                    }
+                    button("Text")
+                    SettingsActivity.forceNight = null
+                }
+            } else if (phase.startsWith("blur_")) {
                 main { (activity as KeyboardTestActivity).setBackdropProbe(phase == "blur_warm") }
                 SystemClock.sleep(500)
                 check("native backdrop follows system availability", main {
@@ -295,7 +393,9 @@ class KeyboardSmokeInstrumentation : Instrumentation() {
                 check("empty suggestions are hidden but reserve their space", main {
                     KeyboardSwitcher.getInstance().stripContainer.visibility == View.INVISIBLE
                 })
-                check("clipboard remains available below", main { keyboard().rootView.findViewById<View>(R.id.cupertino_clipboard).isShown })
+                showClipboardMenuIfNeeded()
+                check("clipboard remains available from microphone", main { clipboardButton().isShown })
+                main { helium314.keyboard.keyboard.CupertinoNavigationBar.dismissMenu() }
                 val stableHeight = frameHeight()
                 fun reportedTop() = main {
                     android.inputmethodservice.InputMethodService.Insets().also { ime().onComputeInsets(it) }.contentTopInsets

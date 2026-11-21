@@ -10,14 +10,6 @@
         android:paddingTop="8dp" android:paddingBottom="16dp" android:scaleType="center"
         android:background="?android:attr/selectableItemBackgroundBorderless"
         android:src="@drawable/cupertino_globe" android:contentDescription="@string/switch_language" />
-    <ImageButton android:id="@+id/cupertino_clipboard"
-        android:layout_width="48dp" android:layout_height="48dp"
-        android:layout_gravity="right|center_vertical" android:layout_marginRight="64dp"
-        android:paddingLeft="14dp" android:paddingRight="14dp"
-        android:paddingTop="10dp" android:paddingBottom="18dp" android:scaleType="fitCenter"
-        android:background="?android:attr/selectableItemBackgroundBorderless"
-        android:src="@drawable/sym_keyboard_clipboard_rounded"
-        android:contentDescription="@string/settings_category_clipboard_history" />
     <ImageButton android:id="@+id/cupertino_voice"
         android:layout_width="48dp" android:layout_height="48dp"
         android:layout_gravity="right|center_vertical" android:layout_marginRight="8dp"

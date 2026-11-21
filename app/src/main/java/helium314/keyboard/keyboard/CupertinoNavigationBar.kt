@@ -8,6 +8,7 @@ import android.view.View
 import android.view.WindowInsets
 import android.view.inputmethod.InputMethodManager
 import android.widget.ImageButton
+import android.widget.PopupWindow
 import androidx.annotation.RequiresApi
 import helium314.keyboard.latin.LatinIME
 import helium314.keyboard.latin.R
@@ -45,6 +46,9 @@ object CupertinoNavigationBar {
         active = null
     }
 
+    @JvmStatic fun dismissMenu() { if (Build.VERSION.SDK_INT >= 36) active?.dismissMenu() }
+    internal fun menuContent(): View? = if (Build.VERSION.SDK_INT >= 36) active?.menu?.contentView else null
+
     @JvmStatic fun height(input: View): Int = input.findViewById<View>(R.id.cupertino_navigation_bar)
         ?.let { if (it.visibility == View.VISIBLE) it.height else 0 } ?: 0
 
@@ -53,19 +57,13 @@ object CupertinoNavigationBar {
         private val bar = input.findViewById<View>(R.id.cupertino_navigation_bar)
         private val globe = input.findViewById<ImageButton>(R.id.cupertino_language)
         private val voice = input.findViewById<ImageButton>(R.id.cupertino_voice)
-        private val clipboard = input.findViewById<ImageButton>(R.id.cupertino_clipboard)
+        var menu: PopupWindow? = null
+            private set
         private var requested = false
         private var closed = false
         private val update = Runnable { if (!closed) input.requestApplyInsets() }
 
         init {
-            clipboard.setOnClickListener {
-                ime.onCodeInput(helium314.keyboard.keyboard.internal.keyboard_parser.floris.KeyCode.CLIPBOARD, -1, -1, false)
-            }
-            clipboard.setOnLongClickListener {
-                ime.onCodeInput(helium314.keyboard.keyboard.internal.keyboard_parser.floris.KeyCode.CLIPBOARD_PASTE, -1, -1, false)
-                true
-            }
             globe.setOnClickListener {
                 val subtypes = SubtypeSettings.getEnabledSubtypes(true)
                 val current = RichInputMethodManager.getInstance().currentSubtype.rawSubtype
@@ -81,7 +79,14 @@ object CupertinoNavigationBar {
                 if (GoogleVoiceInput.isAllowed(Settings.getValues())) GoogleVoiceInput.start(ime)
                 else ime.requestHideSelf(0)
             }
-            voice.setOnLongClickListener { ime.requestHideSelf(0); true }
+            voice.setOnLongClickListener {
+                dismissMenu()
+                menu = CupertinoAccessoryMenu.show(voice,
+                    clipboard = { ime.onCodeInput(helium314.keyboard.keyboard.internal.keyboard_parser.floris.KeyCode.CLIPBOARD, -1, -1, false) },
+                    hide = { ime.requestHideSelf(0) })
+                true
+            }
+            voice.setOnTouchListener { _, event -> menu?.let { CupertinoAccessoryMenu.onAnchorTouch(it, event) } ?: false }
             input.setOnApplyWindowInsetsListener { view, insets ->
                 apply(input.rootWindowInsets ?: insets)
                 view.onApplyWindowInsets(insetsForKeyboard(insets, bar.visibility == View.VISIBLE))
@@ -116,15 +121,12 @@ object CupertinoNavigationBar {
                 val tint = ColorStateList.valueOf(settings.mColors.get(ColorType.KEY_TEXT))
                 globe.imageTintList = tint
                 voice.imageTintList = tint
-                clipboard.imageTintList = tint
-                clipboard.isForceDarkAllowed = false
                 globe.isForceDarkAllowed = false
                 voice.isForceDarkAllowed = false
                 val voiceAllowed = GoogleVoiceInput.isAllowed(settings)
                 voice.setImageResource(if (voiceAllowed) R.drawable.cupertino_microphone else R.drawable.cupertino_hide)
                 voice.contentDescription = input.context.getString(if (voiceAllowed)
                     R.string.cupertino_voice_description else R.string.space_swipe_hide_keyboard_entry)
-                voice.tooltipText = voice.contentDescription
             }
             input.findViewById<helium314.keyboard.latin.suggestions.SuggestionStripView>(R.id.suggestion_strip_view)
                 ?.updateAutoVisibility()
@@ -132,10 +134,16 @@ object CupertinoNavigationBar {
 
         fun close() {
             closed = true
+            dismissMenu()
             input.removeCallbacks(update)
             input.setOnApplyWindowInsetsListener(null)
             if (requested) input.windowInsetsController?.show(WindowInsets.Type.captionBar())
             bar.visibility = View.GONE
+        }
+
+        fun dismissMenu() {
+            menu?.dismiss()
+            menu = null
         }
     }
 }

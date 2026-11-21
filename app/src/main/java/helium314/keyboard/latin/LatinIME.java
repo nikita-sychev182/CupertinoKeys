@@ -1047,6 +1047,7 @@ public class LatinIME extends InputMethodService implements
 
     @Override
     public void onWindowHidden() {
+        helium314.keyboard.keyboard.CupertinoNavigationBar.dismissMenu();
         helium314.keyboard.keyboard.CupertinoWindowBlur.hide();
         super.onWindowHidden();
         Log.i(TAG, "onWindowHidden");

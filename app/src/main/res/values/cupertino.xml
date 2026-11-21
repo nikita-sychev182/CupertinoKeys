@@ -1,13 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="cupertino_spell_checker_name" translatable="false">Cupertino Keys</string>
     <string name="cupertino_clipboard_empty">Copied text will appear here.\nTap an entry to paste, or hold it to pin.</string>
     <string name="cupertino_enable">Enable</string>
-    <string name="cupertino_clipboard_enable_message">Clipboard history is off. Enable local storage of copied text? Ordinary entries expire after one hour by default; pinned entries stay until deleted. Hold the clipboard button to paste the current copy without enabling history.</string>
+    <string name="cupertino_clipboard_enable_message">Clipboard history is off. Enable local storage of copied text? Ordinary entries expire after one hour by default; pinned entries stay until deleted.</string>
     <string name="cupertino_feedback_dnd">Do Not Disturb suppresses keyboard sound and ordinary vibration</string>
     <string name="cupertino_feedback_silent">Silent mode suppresses keyboard sound</string>
     <string name="cupertino_feedback_sound_settings">Open phone sound settings. You can allow vibration in Do Not Disturb with the separate switch below.</string>
-    <string name="cupertino_clipboard_summary">Keep copied text locally: 5 entries or more, for 1 hour by default. Open history beside suggestions; hold the clipboard button to paste the latest copy. Clips marked sensitive are not saved.</string>
-    <string name="cupertino_voice_description">Google voice input. Hold to hide keyboard.</string>
+    <string name="cupertino_clipboard_summary">Keep copied text locally: 5 entries or more, for 1 hour by default. Hold the microphone and choose Clipboard to open history. Clips marked sensitive are not saved.</string>
+    <item name="cupertino_clipboard" type="id" />
+    <item name="cupertino_menu_hide" type="id" />
+    <string name="cupertino_action_clipboard">Clipboard</string>
+    <string name="cupertino_action_hide">Hide</string>
+    <string name="cupertino_voice_description">Google voice input. Hold for clipboard or hide keyboard.</string>
     <string name="cupertino_enable_google_voice">Enable Google Voice Typing in Android keyboard settings.</string>
     <string name="cupertino_voice_not_permitted">Voice input is not permitted in this profile.</string>
     <string name="theme_name_cupertino_light" translatable="false">Cupertino Light</string>

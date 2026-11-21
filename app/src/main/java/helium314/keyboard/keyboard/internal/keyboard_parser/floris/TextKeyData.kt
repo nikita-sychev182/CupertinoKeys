@@ -356,7 +356,11 @@ sealed interface KeyData : AbstractKeyData {
             newLabel = KeyLabel.keyLabelToActualLabel(label, params)
         }
         var newLabelFlags = labelFlags or additionalLabelFlags or getAdditionalLabelFlags(params)
-        val newPopupKeys = popup.merge(getAdditionalPopupKeys(params))
+        val newPopupKeys = if (Settings.getValues().mColors is helium314.keyboard.latin.common.CupertinoColors
+            && !params.mId.element.isNumberLayout
+            && (newCode == 44 || newCode == KeyCode.UNSPECIFIED && newLabel == ","))
+            SimplePopups(listOf("!noPanelAutoPopupKey!", "."))
+        else popup.merge(getAdditionalPopupKeys(params))
 
         val background = when (type) {
             KeyType.CHARACTER, KeyType.NUMERIC -> Key.BACKGROUND_TYPE_NORMAL

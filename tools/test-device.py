@@ -17,12 +17,12 @@ parser.add_argument("--serial", required=True)
 parser.add_argument("--adb", default="adb")
 parser.add_argument("--output", type=Path, default=Path(".tools/test-results"))
 parser.add_argument("--screenshots", action="store_true", help="Capture light EN and dark RU previews in our disposable screen")
-parser.add_argument("--phase", choices=("geometry", "navigation", "voice", "clipboard", "clipboard_access", "suggestions", "blur_warm", "blur_cool", "blur_fallback", "emoji_light", "emoji_dark", "work_setup", "work_cleanup"),
+parser.add_argument("--phase", choices=("geometry", "navigation", "voice", "clipboard", "clipboard_access", "accessories", "clipboard_dark", "spelling", "suggestions", "blur_warm", "blur_cool", "blur_fallback", "emoji_light", "emoji_dark", "work_setup", "work_cleanup"),
                     help="Run a targeted check; work_setup deliberately retains one disposable dictionary word")
 args = parser.parse_args()
 if args.screenshots and args.phase:
     parser.error("Use either --screenshots or --phase")
-capture_preview = args.screenshots or bool(args.phase and (args.phase.startswith(("emoji_", "blur_")) or args.phase == "clipboard_access"))
+capture_preview = args.screenshots or bool(args.phase and (args.phase.startswith(("emoji_", "blur_")) or args.phase in ("clipboard_access", "accessories", "clipboard_dark")))
 adb = [args.adb, "-s", args.serial]
 package = "dev.cupertinokeys.keyboard.debug"
 activity = f"{package}/helium314.keyboard.latin.KeyboardTestActivity"

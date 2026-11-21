@@ -8,7 +8,8 @@ Original licenses and attribution are retained below and in the license files.
 
 The current prototype adds iOS 26-inspired light/dark materials, rounded keycaps,
 Inter typography, a wider spacebar, a simpler bottom row, RU/EN setup, and horizontal
-spacebar swipes to switch languages. A comma key is available beside the spacebar in RU/EN.
+spacebar swipes to switch languages. A comma key is available beside the spacebar in RU/EN;
+holding it inserts a period without inserting a comma.
 Inter is bundled under the SIL Open Font License;
 original vector icons are used instead of Apple assets.
 It is **not a pixel-identical iOS keyboard**: the bottom accessory area, animations,
@@ -28,7 +29,7 @@ The upper surface corners use an 18 dp radius, with 6 dp of inner space above th
 
 On Android 16 with gesture navigation, the Cupertino theme replaces the system IME
 caption bar with a bottom-left language globe and bottom-right Google voice button.
-Hold the microphone to hide the keyboard. In password/no-learning fields it becomes
+Hold the microphone for a small palette with Clipboard and Hide actions. In password/no-learning fields it becomes
 a hide button. The globe cycles enabled languages; long-press opens Android's keyboard picker. The system
 gesture bar stays visible. Older versions, floating/fullscreen modes, and devices that
 do not allow caption-bar replacement retain the system panel. See the
@@ -38,9 +39,9 @@ cover flatter keycaps, reduced height, the voice button, and themed emoji catego
 
 With the Android 16 bottom panel, empty suggestion content is hidden while its height
 is reserved. Candidate updates and word deletion therefore do not move the application's
-message composer. The clipboard button stays
-beside the microphone in the bottom panel, including with suggestions and emoji open.
-Its duplicate beside the suggestions is hidden when this bottom panel is available. Explicit tools, app-provided
+message composer. Clipboard access is in the microphone's long-press palette,
+including with suggestions and emoji open. The duplicate beside the suggestions is
+hidden when this bottom panel is available. Explicit tools, app-provided
 suggestions, emoji categories, and clipboard controls remain accessible. Older system
 panels retain the existing row so its clipboard button is not lost.
 The Cupertino Enter/action key has no long-press popup menu; emoji use their dedicated
@@ -64,13 +65,19 @@ Privacy changes:
 Sound, vibration, and clipboard-history switches are available directly on the main
 settings screen. History is opt-in; it supports multiple text entries (five-entry
 copy/paste verified on Xiaomi 14), with a default retention of one hour. Hold an entry
-to pin it. The pinned clipboard button beside suggestions opens history; hold the
-button to paste the current system clip. File collection defaults to off. History
+to pin it. On the Cupertino bottom panel, hold the microphone and select Clipboard;
+older layouts retain their pinned clipboard button and hold-to-paste shortcut. File collection defaults to off. History
 does not collect in password/no-learning/incognito fields or save clips explicitly
 marked sensitive. Existing customized toolbar and retention settings are preserved.
 Tapping the clipboard button while history is off offers to enable it. The settings
 home explains when Do Not Disturb or silent mode suppresses feedback and exposes the
 separate option for vibration during Do Not Disturb.
+
+Android's red spelling underlines are controlled by the selected system spell checker,
+independently of the active keyboard. Select **Cupertino Keys** in Android's spelling
+settings to use this fork's local checker, which follows the keyboard language. Its
+previous inherited name was **HeliBoard SpellChecker**. App-specific proofreaders may
+apply their own rules.
 
 The keyboard necessarily sends committed text to the application being typed into.
 Manual export features inherited from HeliBoard are user-initiated; the keyboard
@@ -87,7 +94,7 @@ Use Android Studio with JDK 21 (required by Robolectric for API 36 tests) and th
 
 ```powershell
 python tools/check_privacy.py
-.\gradlew.bat :app:testDebugUnitTest --tests '*LocalDictionaryProviderTest' --tests '*CupertinoDefaultsTest' --tests '*InputPrivacyTest'
+.\gradlew.bat :app:testDebugUnitTest --tests '*LocalDictionaryProviderTest' --tests '*CupertinoDefaultsTest' --tests '*InputPrivacyTest' --tests '*CupertinoBlurBackgroundTest' --tests '*SpellCheckerSessionTest'
 .\gradlew.bat :app:assembleDebugNoMinify
 python tools/check_privacy.py --merged
 ```
@@ -95,7 +102,7 @@ python tools/check_privacy.py --merged
 The `Cupertino Keys` GitHub Actions workflow is configured to run these checks and upload a development APK.
 Tests cover dictionary persistence, locale separation, duplicate handling, private URIs,
 first-run language defaults, changes to no-learning flags on API 29 and 36, and Android 16
-window geometry/blur boundaries. All 22 current cases passed locally on JDK 21;
+window geometry/blur boundaries, and punctuation-only spell-check requests. All 24 current cases passed locally on JDK 21;
 native child-window boundaries and suggestion-row transitions are checked on-device.
 Source checks alone do not establish runtime behavior.
 

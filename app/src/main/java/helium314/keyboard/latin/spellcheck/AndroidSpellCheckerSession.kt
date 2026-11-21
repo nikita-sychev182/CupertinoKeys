@@ -96,7 +96,11 @@ class AndroidSpellCheckerSession(service: AndroidSpellCheckerService) : AndroidW
             return retval
         }
         for (i in retval.indices) {
-            val tempSsi = fixWronglyInvalidatedWordWithSingleQuote(textInfos[i]!!, retval[i]!!)
+            // A punctuation-only sentence has no split words and reconstructSuggestions
+            // legitimately returns null. Android may also send an empty batch entry.
+            val textInfo = textInfos[i] ?: continue
+            val sentence = retval[i] ?: continue
+            val tempSsi = fixWronglyInvalidatedWordWithSingleQuote(textInfo, sentence)
             if (tempSsi != null) {
                 retval[i] = tempSsi
             }
@@ -139,7 +143,8 @@ class AndroidSpellCheckerSession(service: AndroidSpellCheckerService) : AndroidW
         val infosSize = textInfos.size
         val retval = arrayOfNulls<SentenceSuggestionsInfo>(infosSize)
         for (i in 0..<infosSize) {
-            val textInfoParams = sentenceLevelAdapter.getSplitWords(textInfos[i])
+            val textInfo = textInfos[i] ?: continue
+            val textInfoParams = sentenceLevelAdapter.getSplitWords(textInfo)
             val mItems = textInfoParams.mItems
             val itemsSize = mItems.size
             val splitTextInfos = Array(itemsSize) { mItems[it].mTextInfo }

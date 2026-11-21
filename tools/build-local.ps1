@@ -34,7 +34,7 @@ try {
         $options += '-Pandroid.injected.testOnly=false'
         & $gradle :app:assembleDebugNoMinify @options
     } else {
-        & $gradle :app:testDebugUnitTest --tests '*LocalDictionaryProviderTest' --tests '*CupertinoDefaultsTest' --tests '*InputPrivacyTest' --tests '*CupertinoBlurBackgroundTest' @options
+        & $gradle :app:testDebugUnitTest --tests '*LocalDictionaryProviderTest' --tests '*CupertinoDefaultsTest' --tests '*InputPrivacyTest' --tests '*CupertinoBlurBackgroundTest' --tests '*SpellCheckerSessionTest' @options
     }
     if ($LASTEXITCODE -ne 0) { throw "Gradle failed with exit code $LASTEXITCODE" }
 } finally {
