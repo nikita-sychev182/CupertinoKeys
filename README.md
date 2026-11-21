@@ -1,278 +1,135 @@
-# Cupertino Keys — Android keyboard
+<p align="center">
+  <img src="docs/images/cupertino-banner.svg" alt="Cupertino Keys — клавиатура для Android в духе iOS" width="100%">
+</p>
 
-Early development fork of [HeliBorg/HeliBoard](https://github.com/HeliBorg/HeliBoard),
-based on the original **v4.2** commit `0c60dffb03a4e2e7a37cb82210f5299f93c03979`.
-The working branch is `cupertino`; `upstream` points at the original repository.
-This is an independent project, not an Apple or HeliBoard release. Changes in this fork are AI-assisted.
-Original licenses and attribution are retained below and in the license files.
+<p align="center">
+  <strong>Привычный вид. Русский и английский. Словарь на вашем устройстве.</strong><br>
+  Независимый форк HeliBoard · Android · GPL-3.0 · Ранняя версия 0.1.0
+</p>
 
-The current prototype adds iOS 26-inspired light/dark materials, rounded keycaps,
-Inter typography, a wider spacebar, a simpler bottom row, RU/EN setup, and horizontal
-spacebar swipes to switch languages. A comma key is available beside the spacebar in RU/EN;
-holding it inserts a period without inserting a comma.
-Inter is bundled under the SIL Open Font License;
-original vector icons are used instead of Apple assets.
-It is **not a pixel-identical iOS keyboard**: the bottom accessory area, animations,
-and touch feel still need refinement. Light EN and dark RU previews were inspected on
-Mi 8; see [visual verification](docs/testing/cupertino-visuals.md).
-
-The keyboard uses native background blur on supported Android 12+ devices. A separate,
-non-touchable child window covers only the keyboard, leaving the application above
-it sharp. Its neutral translucent surface takes its tint from the content actually
-drawn underneath; an app with a solid background produces a uniform tint. The system
-composites this effect without the keyboard reading or storing application pixels.
-When blur is unavailable, floating, or fullscreen, the surface is opaque and neutral.
-Flat, slightly translucent keycaps have no individual shadows or bevels. Native blur
-and changing background colors were verified on Xiaomi 14 / Android 16; see
-[glass and suggestion-row checks](docs/testing/glass-suggestions-2026-11-21.md).
-The upper surface corners use an 18 dp radius, with 6 dp of inner space above the content.
-
-On Android 16 with gesture navigation, the Cupertino theme replaces the system IME
-caption bar with a bottom-left language globe and bottom-right Google voice button.
-Hold the microphone for a small palette with Clipboard and Hide actions. In password/no-learning fields it becomes
-a hide button. The globe cycles enabled languages; long-press opens Android's keyboard picker. The system
-gesture bar stays visible. Older versions, floating/fullscreen modes, and devices that
-do not allow caption-bar replacement retain the system panel. See the
-[Xiaomi 14 regression checks](docs/testing/xiaomi14-2026-11-21.md).
-The latest [reference-style and emoji checks](docs/testing/ios-reference-2026-11-21.md)
-cover flatter keycaps, reduced height, the voice button, and themed emoji categories.
-
-With the Android 16 bottom panel, empty suggestion content is hidden while its height
-is reserved. Candidate updates and word deletion therefore do not move the application's
-message composer. Clipboard access is in the microphone's long-press palette,
-including with suggestions and emoji open. The duplicate beside the suggestions is
-hidden when this bottom panel is available. Explicit tools, app-provided
-suggestions, emoji categories, and clipboard controls remain accessible. Older system
-panels retain the existing row so its clipboard button is not lost.
-The Cupertino Enter/action key has no long-press popup menu; emoji use their dedicated
-outlined smile button. Normal Enter/Send/Next actions remain controlled by the application.
-See [stable-height and Enter checks](docs/testing/stable-suggestions-2026-11-21.md).
-
-Voice input hands control to an enabled Google Voice Typing keyboard. Cupertino Keys
-does not record audio or request microphone permission. Google may send audio to its
-servers under its own settings; this optional external service is separate from the
-local dictionary and is not an offline recognition guarantee.
-
-Privacy changes:
-- No internet permission, shared Android dictionary permissions, or contacts access.
-- Personal dictionary uses a non-exported app-private SQLite provider in `noBackupFilesDir`.
-- The existing on-device prediction/learning engine and bundled RU/EN dictionaries are retained.
-- Cloud backup and device-transfer exclusions cover both credential and device-protected storage.
-- Gesture sample collection and its sharing provider are disabled; input diagnostics and crash-log export are disabled.
-- Clipboard history is off by default. Password/no-learning field handling is inherited from HeliBoard.
-- No existing system dictionary is imported automatically. Uninstalling erases app-private learned data.
-
-Sound, vibration, and clipboard-history switches are available directly on the main
-settings screen. History is opt-in; it supports multiple text entries (five-entry
-copy/paste verified on Xiaomi 14), with a default retention of one hour. Hold an entry
-to pin it. On the Cupertino bottom panel, hold the microphone and select Clipboard;
-older layouts retain their pinned clipboard button and hold-to-paste shortcut. File collection defaults to off. History
-does not collect in password/no-learning/incognito fields or save clips explicitly
-marked sensitive. Existing customized toolbar and retention settings are preserved.
-Tapping the clipboard button while history is off offers to enable it. The settings
-home explains when Do Not Disturb or silent mode suppresses feedback and exposes the
-separate option for vibration during Do Not Disturb.
-
-Android's red spelling underlines are controlled by the selected system spell checker,
-independently of the active keyboard. Select **Cupertino Keys** in Android's spelling
-settings to use this fork's local checker, which follows the keyboard language. Its
-previous inherited name was **HeliBoard SpellChecker**. App-specific proofreaders may
-apply their own rules.
-
-The keyboard necessarily sends committed text to the application being typed into.
-Manual export features inherited from HeliBoard are user-initiated; the keyboard
-does not upload its dictionary. Rooted-device tools and vendor migration utilities
-must be evaluated separately from Android's documented backup APIs.
-
-## Build and verify
-
-The application ID is `dev.cupertinokeys.keyboard` (`.debug` for development builds),
-so it can coexist with HeliBoard. The display name is **Cupertino Keys**.
-
-Use Android Studio with JDK 21 (required by Robolectric for API 36 tests) and the SDK/NDK versions pinned by upstream
-(compile/target SDK 37, min SDK 21, NDK 28.0.13004108). Then:
-
-```powershell
-python tools/check_privacy.py
-.\gradlew.bat :app:testDebugUnitTest --tests '*LocalDictionaryProviderTest' --tests '*CupertinoDefaultsTest' --tests '*InputPrivacyTest' --tests '*CupertinoBlurBackgroundTest' --tests '*SpellCheckerSessionTest'
-.\gradlew.bat :app:assembleDebugNoMinify
-python tools/check_privacy.py --merged
-```
-
-The `Cupertino Keys` GitHub Actions workflow is configured to run these checks and upload a development APK.
-Tests cover dictionary persistence, locale separation, duplicate handling, private URIs,
-first-run language defaults, changes to no-learning flags on API 29 and 36, and Android 16
-window geometry/blur boundaries, and punctuation-only spell-check requests. All 24 current cases passed locally on JDK 21;
-native child-window boundaries and suggestion-row transitions are checked on-device.
-Source checks alone do not establish runtime behavior.
-
-On Windows, paths containing spaces or `!` require special handling for the upstream
-NDK scripts. `tools/build-local.ps1 -Task Build` (or `-Task Test`) uses a checked `K:`
-mapping and an ignored `.tools` SDK/JDK/Gradle installation. It expects JDK 21 under
-`.tools/jdk`, the pinned Gradle distribution under `.tools/gradle`, and the SDK under
-`.tools/android-sdk`. It does not download tools or change system-wide environment variables.
-The APK is written to `app/build/intermediates/apk/debugNoMinify/`.
-The local build script disables `testOnly` so this development APK can also be
-installed by opening the file on a phone.
-
-## Personal and work profiles
-
-Install and select Cupertino Keys in the personal profile. Standard Android work
-profiles share the personal profile's input method, so the same keyboard settings
-and app-private personal dictionary are expected in both personal and work apps.
-Change settings and edit the dictionary through the personal-profile app; a second
-installation in the work profile has separate app storage and is not a sync mechanism.
-No network or cross-profile data bridge is needed for the shared keyboard.
-
-This follows [Android Enterprise's shared-IME behavior](https://developers.google.com/android/work/requirements?api=playemm#412_ime_management).
-An administrator can restrict which keyboards are permitted. Separate Android users
-and Xiaomi Second space are outside this shared-IME setup. Xiaomi 14 / HyperOS work
-profile behavior still requires the [device checks](docs/DEVICE_TESTING.md#work-profile-on-xiaomi-14).
-Password and no-learning fields retain their privacy restrictions in either profile.
-
-Primary device: **Xiaomi 14 / Android 16**. Secondary: **Xiaomi Mi 8 / Android 10 (API 29), MIUI 12**.
-See [device test steps](docs/DEVICE_TESTING.md).
+<p align="center">
+  <a href="#возможности">Возможности</a> ·
+  <a href="#установка">Установка</a> ·
+  <a href="#совместимость">Совместимость</a> ·
+  <a href="#приватность">Приватность</a> ·
+  <a href="#сборка">Сборка</a>
+</p>
 
 ---
 
-# Original HeliBoard documentation
-HeliBoard is a privacy-conscious and customizable open-source keyboard, based on AOSP / OpenBoard.
-Does not use internet permission, and thus is 100% offline.
+**Cupertino Keys** — клавиатура для Android с оформлением в духе iOS: плоские клавиши, светлая и тёмная темы, полупрозрачный фон и лаконичные элементы управления. В основе — движок [HeliBoard](https://github.com/HeliBorg/HeliBoard), локальные словари и подсказки.
 
-[<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" alt="Get it on F-Droid" height="80">](https://f-droid.org/packages/helium314.keyboard/)
-[<img src="https://user-images.githubusercontent.com/663460/26973090-f8fdc986-4d14-11e7-995a-e7c5e79ed925.png" alt="Get APK from GitHub" height="80">](https://github.com/HeliBorg/HeliBoard/releases/latest)
-[<img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" alt="Get it on IzzyOnDroid" height="80">](https://apt.izzysoft.de/fdroid/index/apk/helium314.keyboard)
+> [!IMPORTANT]
+> **Основное тестирование и настройка выполнены на Xiaomi 14 с Android 16 / HyperOS.** На других телефонах, версиях Android и оболочках внешний вид, размытие, отступы, жесты и поведение клавиатуры могут отличаться. Это ранняя версия, а не гарантия одинаковой работы на всех устройствах.
 
-## Table of Contents
+## Возможности
 
-- [Features](#features)
-- [Contributing](#contributing-)
-   * [Reporting Issues](#reporting-issues)
-   * [Translations](#translations)
-   * [To Community](#to-community)
-   * [Code Contribution](CONTRIBUTING.md)
-- [Links](#links)
-- [License](#license)
-- [Credits](#credits)
-  * [Funding](#funding)
+| | Что умеет клавиатура |
+| :-- | :-- |
+| **Оформление** | Плоские клавиши, скруглённый верх, шрифт Inter, светлая и тёмная темы. |
+| **Прозрачность** | Системное размытие на поддерживаемых устройствах. Оттенок зависит от содержимого под клавиатурой; если размытие недоступно, используется непрозрачный фон. |
+| **RU / EN** | Русский и английский по умолчанию. Переключение языка свайпом по пробелу. |
+| **Пунктуация** | Запятая справа от пробела. Удержание запятой вводит точку. |
+| **Подсказки** | Локальные словари и персональные слова. Место под подсказки сохраняется, чтобы поле сообщения не прыгало при вводе. |
+| **Нижняя панель** | Глобус слева, микрофон справа. Удержание микрофона открывает меню «Буфер / Свернуть».¹ |
+| **Буфер обмена** | История нескольких записей, вставка, закрепление и удаление. Включается по желанию; проверена работа с пятью записями. |
+| **Отклик** | Настраиваемые звук и вибрация с учётом системного беззвучного режима и «Не беспокоить». |
+| **Эмодзи** | Отдельная кнопка со смайлом. Удержание Enter не открывает меню эмодзи. |
 
-# Features
-<ul>
-  <li>Add dictionaries for suggestions and spell check</li>
-  <ul>
-    <li>build your own, or get them  <a href="https://codeberg.org/Helium314/aosp-dictionaries#dictionaries">here</a> (quality may vary)</li>
-    <li>additional dictionaries for emojis or scientific symbols can be used to provide suggestions (similar to "emoji search")</li>
-    <li>note that for Korean layouts, suggestions only work using <a href="https://github.com/openboard-team/openboard/commit/83fca9533c03b9fecc009fc632577226bbd6301f">this dictionary</a>, the tools in the dictionary repository are not able to create working dictionaries</li>
-  </ul>
-  <li>Customize keyboard themes (style, colors and background image)</li>
-  <li>Emoji search (inline and separate, requires <a href="https://codeberg.org/Helium314/aosp-dictionaries">emoji dictionary</a>)</li>
-  <ul>
-    <li>can follow the system's day/night setting on Android 10+ (and on some versions of Android 9)</li>
-    <li>can follow dynamic colors for Android 12+</li>
-  </ul>
-  <li>Customize keyboard <a href="https://github.com/HeliBorg/HeliBoard/blob/main/layouts.md">layouts</a> (only available when disabling <i>use system languages</i>)</li>
-  <li>Customize special layouts, like symbols, number,  or functional key layout</li>
-  <li>Multilingual typing</li>
-  <li>Glide typing (<i>only with closed source library</i> ☹️)</li>
-  <ul>
-    <li>library not included in the app, as there is no compatible open source library available</li>
-    <li>can be extracted from GApps packages ("<i>swypelibs</i>"), or downloaded <a href="https://github.com/erkserkserks/openboard/tree/46fdf2b550035ca69299ce312fa158e7ade36967/app/src/main/jniLibs">here</a> (click on the file and then "raw" or the tiny download button)</li>
-  </ul>
-  <li>Clipboard history</li>
-  <li>One-handed mode</li>
-  <li>Split keyboard</li>
-  <li>Number pad</li>
-  <li>Backup and restore your settings and learned word / history data</li>
-</ul>
+¹ Своя нижняя панель работает в поддерживаемом режиме жестовой навигации Android 16. В других конфигурациях остаётся системная панель; буфер доступен через панель инструментов.
 
-For [FAQ](https://github.com/HeliBorg/HeliBoard/wiki/FAQ), [hidden features](https://github.com/HeliBorg/HeliBoard/wiki/9.-Hidden-features) and more information about the app and features, please visit the [wiki](https://github.com/HeliBorg/HeliBoard/wiki)
+<details>
+<summary><strong>Скриншоты с Xiaomi 14: меню микрофона и буфер</strong></summary>
+<br>
+<p align="center">
+  <img src="docs/images/xiaomi14-accessories.png" width="300" alt="Русская клавиатура и меню Clipboard / Hide над микрофоном">
+  &nbsp;
+  <img src="docs/images/xiaomi14-clipboard.png" width="300" alt="Буфер с единым фоном верхней панели">
+</p>
 
-# Contributing ❤
+Снимки сделаны в тестовом приложении на Xiaomi 14. Записи буфера скрыты для снимка; подписи меню на английском из-за языка системы. Прозрачный фон выглядит по-разному в разных приложениях. Баннер выше — иллюстрация, эти снимки — реальный интерфейс.
 
-## Reporting Issues
+</details>
 
-Whether you encountered a bug, or want to see a new feature in HeliBoard, you can contribute to the project by opening a new issue [here](https://github.com/HeliBorg/HeliBoard/issues). Your help is always welcome!
+## Установка
 
-Before opening a new issue, be sure to check the following:
- - **Does the issue already exist?** Make sure a similar issue has not been reported by browsing [existing issues](https://github.com/HeliBorg/HeliBoard/issues?q=). Please search open and closed issues. In case of feature requests you could also check the [FAQ](https://github.com/HeliBorg/HeliBoard/wiki/FAQ) and [hidden features](https://github.com/HeliBorg/HeliBoard/wiki/9.-Hidden-features).
- - **Is the issue still relevant?** Make sure your issue is not already fixed in the latest version of HeliBoard.
- - **Is it a single topic?** If you want to suggest multiple things, open multiple issues.
- - **Did you use the issue template?** It is important to make life of our kind contributors easier by avoiding issues that miss key information to their resolution.
- - **Is it written by a human?** Do not use LLMs or similar to generate issues. Having LLMs help with translation or similar is acceptable, but must be disclosed. See also [AI_USAGE.md](AI_USAGE.md)
-Note that issues that that ignore part of the issue template will likely get treated with very low priority, as often they are needlessly hard to read or understand (e.g. huge screenshots, not providing a proper description, or addressing multiple topics). Blatant violation of the guidelines may result in the issue getting closed.
+1. Установите APK Cupertino Keys. Если готовой сборки ещё нет в **Releases**, её можно собрать из исходников по инструкции ниже.
+2. Откройте приложение, включите клавиатуру в настройках Android и выберите **Cupertino Keys** текущей.
+3. Настройте звук, вибрацию и, при необходимости, историю буфера.
+4. Для локальной проверки орфографии выберите **Cupertino Keys** в системном разделе «Проверка орфографии». В старых сборках служба называлась **HeliBoard SpellChecker**. Выбор клавиатуры сам по себе не меняет системный корректор.
+5. Для диктовки отдельно включите **Голосовой ввод Google** в списке клавиатур. Затем используйте микрофон справа внизу.
 
-If you're interested, you can read the following useful text about effective bug reporting (a bit longer read): https://www.chiark.greenend.org.uk/~sgtatham/bugs.html
+Текущая сборка — **development APK**, пакет `dev.cupertinokeys.keyboard.debug`. Она может быть установлена рядом с HeliBoard. Обновление с сохранением данных требует той же подписи APK; локальные и CI-сборки могут иметь разные подписи. Удаление приложения стирает его локальные данные.
 
-## Translations
-Translations can be added using [Weblate](https://translate.codeberg.org/projects/heliboard/). You will need an account to update translations and add languages. Add the language you want to translate to in Languages -> Manage translated languages in the top menu bar.
-Updating translations in a PR will not be accepted, as it may cause conflicts with Weblate translations.
+## Совместимость
 
-Some notes on translations
-* when translating metadata, translating the changelogs is rather useless. It's available as it was requested by translators.
-* the `hidden_features_message` is horrible to translate with Weblate, and serves little benefit as it's just a copy of what's already in the wiki: https://github.com/HeliBorg/HeliBoard/wiki/9.-Hidden-features. It's been made available in the app on user request/contribution.
+| Устройство / режим | Что проверялось |
+| :-- | :-- |
+| **Xiaomi 14 · Android 16 · HyperOS** | Основное устройство. Ввод RU/EN, свайп пробела, пунктуация, подсказки, геометрия окна, нижняя панель, буфер, темы и размытие. Пользователь подтвердил звук, вибрацию и вставку текста через Google Voice Typing. |
+| **Xiaomi Mi 8 · Android 10 · MIUI 12** | Базовый ввод и локальный словарь проверялись на более ранней сборке. Это не проверка всех возможностей текущей версии. |
+| **Рабочий профиль Shelter** | Пользователь подтвердил работу общей клавиатуры и словаря на Xiaomi 14. Автоматические проверки рабочего профиля ограничены HyperOS. |
+| **Другие устройства** | Не проверены. Возможны отличия, ошибки и необходимость настройки. |
 
-## To Community
-There is the [discussions on GitHub](https://github.com/HeliBorg/HeliBoard/discussions), or if you prefer a more open network there is [Lemmy](https://lemmy.world/c/Heliboard).
-You can share your themes, layouts and dictionaries with other people:
-* Themes can be saved and loaded using the menu on top-right in the _adjust colors_ screen
-  * you can share custom colors in a separate [discussion section](https://github.com/HeliBorg/HeliBoard/discussions/categories/custom-colors)
-  * there are theme collections available at [Star-Trowa/heliboard-themes](https://github.com/Star-Trowa/heliboard-themes) and [PickleHik3/droid-tings](https://github.com/PickleHik3/droid-tings)
-* Custom keyboard layouts are text files whose content you can edit, copy and share
-  * this applies to main keyboard layouts and to special layouts adjustable in advanced settings
-  * see [layouts.md](layouts.md) for details
-  * you can share custom layouts in a separate [discussion section](https://github.com/HeliBorg/HeliBoard/discussions/categories/custom-layout)
-  * [Roccobot's Layout Maker](https://roccobot.github.io/HeliBoard-RLM/) is a browser-based editor for json layout files
-* Creating dictionaries is a little more work
-  * first you will need a wordlist in the format from [here](https://codeberg.org/Helium314/aosp-dictionaries/src/branch/main/wordlists/sample.combined) and in the repository readme
-    * you can load the wordlist dictionary directly in HeliBoard like you would load a dictionary, but other AOSP keyboard forks will likely need the .dict file
-  * then you need to compile the dictionary using [external tools](https://github.com/remi0s/aosp-dictionary-tools)
-    * when you want to add the dictionary to the [repository](https://codeberg.org/Helium314/aosp-dictionaries/), no need to compile to a .dict file
-  * the resulting file (and ideally the wordlist too) can be shared with other users
-  * note that there will not be any further dictionaries added to this app, but you can add dictionaries to the [dictionaries repository](https://codeberg.org/Helium314/aosp-dictionaries)
+Минимальная версия в проекте — Android 5.0 (API 21). Она не означает, что все функции доступны или протестированы начиная с этой версии: системное размытие требует поддерживаемого Android 12+, своя нижняя панель — Android 16 и подходящий режим навигации.
 
-## Code Contribution
-See [Contribution Guidelines](CONTRIBUTING.md)
+### Личный и рабочий профили
 
-# Links
-* Info
-  * [Wiki](https://github.com/HeliBorg/HeliBoard/wiki), including FAQ, help on customizing layouts, and gesture data gathering
-  * [Layout documentation](layouts.md) (more technical info regarding layout customization)
-  * [For creating custom dictionaries](https://codeberg.org/Helium314/aosp-dictionaries#wordlist-information) (see also top of the linked readme)
-* Community
-  * [Lemmy](https://lemmy.world/c/Heliboard)
-  * [Reddit](https://www.reddit.com/r/HeliBoard)
-  * GitHub [discussions](https://github.com/HeliBorg/HeliBoard/discussions)
-* Other
-  * [Translations](https://translate.codeberg.org/projects/heliboard/)
-  * [Dictionaries](https://codeberg.org/Helium314/aosp-dictionaries)
-  * [k3lp](https://codeberg.org/k3lp/k3lp) is a WIP library for keyboard layout parsing that will be implemented in HeliBoard when ready (created by [FlorisBoard](https://github.com/florisboard/florisboard/) maintainers)
-  * [swipe-o-scope](https://codeberg.org/eclexic/swipe-o-scope) for visualizing gesture data as created when using gesture data gathering
+Установите клавиатуру в личном профиле и используйте её также в рабочих приложениях. В стандартном рабочем профиле Android используется общий метод ввода, поэтому настройки и словарь принадлежат одному экземпляру клавиатуры. Устанавливать второй экземпляр ради синхронизации не нужно: у него будет отдельное хранилище.
 
-# License
+Политики администратора могут ограничивать доступные клавиатуры. Xiaomi Second space и отдельные пользователи Android не равнозначны этому режиму. Подробности — в [инструкции проверки профилей](docs/DEVICE_TESTING.md#work-profile-on-xiaomi-14).
 
-HeliBoard (as a fork of OpenBoard) is licensed under GNU General Public License v3.0.
+## Приватность
 
- > Permissions of this strong copyleft license are conditioned on making available complete source code of licensed works and modifications, which include larger works using a licensed work, under the same license. Copyright and license notices must be preserved. Contributors provide an express grant of patent rights.
+- **Без разрешения на интернет.** Cupertino Keys не отправляет набранный текст, словарь или историю буфера на серверы.
+- **Личный словарь хранится внутри приложения.** Нет доступа к контактам и общему пользовательскому словарю Android; локальный провайдер не экспортируется.
+- **Резервное копирование отключено.** Данные исключены из стандартных механизмов Android backup и переноса; поведение сторонних средств миграции требует отдельной проверки.
+- **История буфера — по выбору.** По умолчанию выключена; стандартный срок хранения — час. Сбор ограничен для паролей, режима без обучения и записей, отмеченных как чувствительные.
+- **Голосовой ввод — отдельная служба.** Кнопка передаёт управление Google Voice Typing. Google может отправлять аудио на свои серверы; это не обещание офлайн-диктовки. Сама Cupertino Keys не запрашивает доступ к микрофону.
 
-See repo's [LICENSE](/LICENSE) file.
+Введённый текст, разумеется, передаётся приложению, в котором вы печатаете. Ручной экспорт данных выполняется только по действию пользователя.
 
-Since the app is based on Apache 2.0 licensed AOSP Keyboard, an [Apache 2.0](LICENSE-Apache-2.0) license file is provided.
-The icon is licensed under [Creative Commons BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). A [license file](LICENSE-CC-BY-SA-4.0) is also included.
+## Сборка
 
-# Credits
-- Icon by [Fabian OvrWrt](https://github.com/FabianOvrWrt) with contributions from [The Eclectic Dyslexic](https://github.com/the-eclectic-dyslexic)
-- [OpenBoard](https://github.com/openboard-team/openboard)
-- [AOSP Keyboard](https://android.googlesource.com/platform/packages/inputmethods/LatinIME/)
-- [LineageOS](https://review.lineageos.org/admin/repos/LineageOS/android_packages_inputmethods_LatinIME)
-- [Simple Keyboard](https://github.com/rkkr/simple-keyboard)
-- [Indic Keyboard](https://gitlab.com/indicproject/indic-keyboard)
-- [FlorisBoard](https://github.com/florisboard/florisboard/)
-- Our [contributors](https://github.com/HeliBorg/HeliBoard/graphs/contributors)
+Нужны JDK 21, Android SDK 37 и NDK `28.0.13004108`. Версии зависимостей зафиксированы в проекте; рабочая ветка — `cupertino`.
 
-## Funding
+```sh
+# Linux / macOS; в Windows используйте .\gradlew.bat
+./gradlew :app:assembleDebugNoMinify -Pandroid.injected.testOnly=false
+python tools/check_privacy.py --merged
+```
 
-This project is funded through [NGI Mobifree Fund](https://nlnet.nl/mobifree), a fund established by [NLnet](https://nlnet.nl) with financial support from the European Commission's [Next Generation Internet](https://ngi.eu) program. Learn more at the [NLnet project page](https://nlnet.nl/project/GestureTyping).
+APK появится в `app/build/intermediates/apk/debugNoMinify/`.
 
-[<img src="https://nlnet.nl/logo/banner.png" alt="NLnet foundation logo" width="20%" />](https://nlnet.nl)
+<details>
+<summary><strong>Локальные проверки и сборка в Windows</strong></summary>
 
-Further the project benefits from donations provided by many users (thank you all!).
+Для подготовленного Windows-окружения с инструментами в `.tools`:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tools/build-local.ps1 -Task Build
+powershell -ExecutionPolicy Bypass -File tools/build-local.ps1 -Task Test
+python tools/check_privacy.py --merged
+```
+
+Скрипт использует проверенное сопоставление диска `K:` для обхода ограничений NDK на пробелы и `!` в пути. Сам инструменты не скачивает. Требования к окружению и команды Gradle — в [технических заметках](docs/PROJECT_NOTES.md#build-and-verify).
+
+Последняя локальная проверка: **24 JVM-теста**, проверки приватности двух итоговых манифестов и проверки на Xiaomi 14. Автотесты на телефоне обращаются к представлениям приложения; они не заменяют проверку физических касаний и всех сторонних приложений.
+
+[Как повторить проверки](docs/DEVICE_TESTING.md) · [Отчёты по устройствам](docs/testing)
+
+</details>
+
+## Обратная связь
+
+Если что-то выглядит или работает иначе, приложите к issue модель телефона, версии Android и оболочки, версию сборки, режим навигации и шаги воспроизведения. Скриншот лучше делать с тестовым текстом, без личной переписки и содержимого буфера.
+
+## Основа и лицензии
+
+Проект основан на [HeliBorg/HeliBoard](https://github.com/HeliBorg/HeliBoard), исходная версия **v4.2**, коммит `0c60dffb03a4e2e7a37cb82210f5299f93c03979`. Сохранены исходные лицензии и история доступной базовой версии. Изменения этого форка сделаны с помощью AI.
+
+- Код: [GPL-3.0](LICENSE); части AOSP — [Apache-2.0](LICENSE-Apache-2.0).
+- Исходная иконка HeliBoard: [CC BY-SA 4.0](LICENSE-CC-BY-SA-4.0).
+- Шрифт Inter: [SIL Open Font License](app/src/main/assets/fonts/OFL.txt).
+- [Исходная документация и благодарности HeliBoard](README.upstream.md).
+
+Cupertino Keys — независимый проект, не продукт Apple и не официальный выпуск HeliBoard. Оформление вдохновлено iOS, но не является её точной копией. Шрифты и графические ресурсы Apple в проект не включены.
