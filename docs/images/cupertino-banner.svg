@@ -27,7 +27,7 @@
       <rect x="152" y="258" width="116" height="32" rx="16" fill="#383c44"/>
       <text x="210" y="279">Local dictionary</text>
       <rect x="280" y="258" width="126" height="32" rx="16" fill="#383c44"/>
-      <text x="343" y="279">0.1.0 · Preview</text>
+      <text x="343" y="279">0.1.1 · Preview</text>
     </g>
     <g transform="translate(788 68)">
       <rect width="356" height="224" rx="25" fill="#b9c1cf" fill-opacity=".09" stroke="#d1d9e5" stroke-opacity=".16"/>

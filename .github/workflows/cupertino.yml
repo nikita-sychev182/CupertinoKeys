@@ -38,7 +38,7 @@ jobs:
         run: python3 tools/check_privacy.py --merged
       - uses: actions/upload-artifact@v4
         with:
-          name: CupertinoKeys-0.1.0-dev
+          name: CupertinoKeys-0.1.1-dev
           path: app/build/intermediates/apk/debugNoMinify/*.apk
           if-no-files-found: error
       - uses: actions/upload-artifact@v4
